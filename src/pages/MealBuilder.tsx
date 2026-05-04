@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import IngredientModal from '../modals/IngredientModal';
 import foodPlate from '../assets/food-plate.png';
 import { getFoodOsIngredients, getFoodOsLocations } from '../services/mealBuilderService';
-import { createEmptyMacros } from '../utils/nutrition';
+import { createEmptyMacros, getPlateItemMacros } from '../utils/nutrition';
 import type {
   PlateItem,
   ThriveIngredient,
   ThriveIngredientCategory,
+  ThriveIngredientQuantity,
   ThriveIngredientsMeta,
   ThriveIngredientsResponse,
   ThriveLocation,
@@ -27,6 +28,15 @@ const toDisplayText = (value: string) =>
 const formatPrice = (amount: number, currency = 'LKR') =>
   `${currency} ${new Intl.NumberFormat('en-LK', { maximumFractionDigits: 0 }).format(amount)}`;
 
+const PREVIEW_100G_QUANTITY: ThriveIngredientQuantity = {
+  id: 'preview-100g',
+  quantity_value: '100g',
+  quantity_grams: 100,
+  price: 0,
+  is_available: true,
+  currency: 'LKR',
+};
+
 const formatMacroValue = (value: number) => {
   const roundedValue = Math.round(value * 10) / 10;
 
@@ -35,6 +45,30 @@ const formatMacroValue = (value: number) => {
   }
 
   return Number.isInteger(roundedValue) ? `${roundedValue}` : roundedValue.toFixed(1);
+};
+
+const formatGramsLabel = (grams: number) => {
+  if (!grams) {
+    return '';
+  }
+
+  return `${Number.isInteger(grams) ? grams : Number(grams.toFixed(1))}g`;
+};
+
+const formatPlateItemQuantity = (item: PlateItem) => {
+  const gramsLabel = formatGramsLabel(item.grams);
+
+  if (!gramsLabel) {
+    return item.quantity_label;
+  }
+
+  const normalizedQuantity = item.quantity_label.replace(/\s+/g, '').toLowerCase();
+
+  if (normalizedQuantity === gramsLabel.toLowerCase()) {
+    return gramsLabel;
+  }
+
+  return item.quantity_label ? `${item.quantity_label} / ${gramsLabel}` : gramsLabel;
 };
 
 const getErrorMessage = (error: unknown, fallback: string) => {
@@ -57,6 +91,16 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   }
 
   return fallback;
+};
+
+const formatIngredientKcalPer100g = (ingredient: ThriveIngredient) => {
+  const kcalPer100g = getPlateItemMacros(ingredient, PREVIEW_100G_QUANTITY).kcal;
+
+  if (kcalPer100g <= 0) {
+    return 'kcal/100g pending';
+  }
+
+  return `${formatMacroValue(kcalPer100g)} kcal/100g`;
 };
 
 const MealBuilder: React.FC = () => {
@@ -334,7 +378,6 @@ const MealBuilder: React.FC = () => {
                 onClick={() => setSelectedCategoryId(category.category_id || '')}
               >
                 <span>{toDisplayText(category.category_name)}</span>
-                <small>{category.ingredient_count}</small>
               </button>
             ))}
           </div>
@@ -346,8 +389,6 @@ const MealBuilder: React.FC = () => {
               <div className="ingredient-empty-state">Loading location-wise ingredient catalog...</div>
             ) : categoryIngredients.length ? (
               categoryIngredients.map((ingredient) => {
-                const defaultQuantity = ingredient.default_quantity || ingredient.quantities[0] || null;
-
                 return (
                   <div
                     key={ingredient.id}
@@ -358,14 +399,7 @@ const MealBuilder: React.FC = () => {
                   >
                     <div className="ing-info">
                       <span className="ing-name">{ingredient.name}</span>
-                      <span className="ing-cal">
-                        {defaultQuantity
-                          ? `${defaultQuantity.quantity_value} • ${formatPrice(
-                              defaultQuantity.price,
-                              defaultQuantity.currency,
-                            )}`
-                          : 'Quantity setup pending'}
-                      </span>
+                      <span className="ing-cal">{formatIngredientKcalPer100g(ingredient)}</span>
                     </div>
                     <button
                       className="drag-btn"
@@ -531,7 +565,7 @@ const MealBuilder: React.FC = () => {
                 <div key={item.id} className="selected-item">
                   <div className="item-main">
                     <strong>{item.name}</strong>
-                    <span>{item.grams ? `${item.quantity_label} / ${item.grams}g` : item.quantity_label}</span>
+                    <span>{formatPlateItemQuantity(item)}</span>
                   </div>
                   <div className="item-tags">
                     <span className="tag-accent">{item.specification || item.quantity_label}</span>
