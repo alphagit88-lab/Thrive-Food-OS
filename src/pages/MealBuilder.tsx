@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import IngredientModal from '../modals/IngredientModal';
 import foodPlate from '../assets/food-plate.png';
 import { getFoodOsIngredients, getFoodOsLocations } from '../services/mealBuilderService';
@@ -15,7 +15,7 @@ import type {
 import './MealBuilder.css';
 
 const LOCATION_STORAGE_KEY = 'thrive-food-os:selected-location';
-const MAX_PLATE_ITEMS = 3;
+const MIN_CHECKOUT_ITEMS = 3;
 
 const toDisplayText = (value: string) =>
   value
@@ -60,7 +60,9 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 };
 
 const MealBuilder: React.FC = () => {
+  const navigate = useNavigate();
   const catalogCacheRef = useRef<Record<string, ThriveIngredientsResponse>>({});
+  const checkoutTimeoutRef = useRef<number | null>(null);
   const [locations, setLocations] = useState<ThriveLocation[]>([]);
   const [selectedLocationId, setSelectedLocationId] = useState('');
   const [catalog, setCatalog] = useState<ThriveIngredientCategory[]>([]);
@@ -72,6 +74,7 @@ const MealBuilder: React.FC = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
@@ -211,6 +214,14 @@ const MealBuilder: React.FC = () => {
     };
   }, [selectedLocationId]);
 
+  useEffect(() => {
+    return () => {
+      if (checkoutTimeoutRef.current !== null) {
+        window.clearTimeout(checkoutTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const currentLocation =
     locations.find((location) => location.id === selectedLocationId) || catalogMeta?.location || null;
   const selectedCategory =
@@ -218,6 +229,7 @@ const MealBuilder: React.FC = () => {
   const categoryIngredients = selectedCategory?.ingredients || [];
   const totalPrice = plateItems.reduce((sum, item) => sum + item.price, 0);
   const plateCurrency = currentLocation?.currency || plateItems[0]?.currency || 'LKR';
+  const hasCheckoutMinimum = plateItems.length >= MIN_CHECKOUT_ITEMS;
   const totalMacros = plateItems.reduce((totals, item) => {
     totals.protein += item.macros.protein || 0;
     totals.carbs += item.macros.carbs || 0;
@@ -238,10 +250,6 @@ const MealBuilder: React.FC = () => {
   };
 
   const openIngredientModal = (ingredient: ThriveIngredient) => {
-    if (plateItems.length >= MAX_PLATE_ITEMS) {
-      return;
-    }
-
     setActiveIngredient(ingredient);
     setModalOpen(true);
   };
@@ -253,14 +261,11 @@ const MealBuilder: React.FC = () => {
 
   const handleDragOver = (event: React.DragEvent) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = plateItems.length >= MAX_PLATE_ITEMS ? 'none' : 'move';
+    event.dataTransfer.dropEffect = 'move';
   };
 
   const handleDropOnPlate = (event: React.DragEvent) => {
     event.preventDefault();
-    if (plateItems.length >= MAX_PLATE_ITEMS) {
-      return;
-    }
 
     const ingredientId = event.dataTransfer.getData('ingredientId');
     const ingredient = findIngredientById(ingredientId);
@@ -271,23 +276,32 @@ const MealBuilder: React.FC = () => {
   };
 
   const handleAddToPlate = (item: PlateItem) => {
-    setPlateItems((previousItems) => {
-      if (previousItems.length >= MAX_PLATE_ITEMS) {
-        return previousItems;
-      }
-
-      return [...previousItems, item];
-    });
+    setPlateItems((previousItems) => [...previousItems, item]);
   };
 
   const handleRemoveItem = (id: string) => {
     setPlateItems((previousItems) => previousItems.filter((item) => item.id !== id));
   };
 
+  const handleProceedToCheckout = () => {
+    if (!hasCheckoutMinimum || isCheckoutLoading) {
+      return;
+    }
+
+    setIsCheckoutLoading(true);
+
+    checkoutTimeoutRef.current = window.setTimeout(() => {
+      setIsCheckoutLoading(false);
+      navigate('/order');
+    }, 300);
+  };
+
   const instructionText = isLoadingIngredients
     ? 'LOADING INGREDIENTS FROM THRIVE_BACKEND'
-    : plateItems.length >= MAX_PLATE_ITEMS
-      ? 'PLATE READY. REMOVE AN ITEM TO CHANGE IT'
+    : isCheckoutLoading
+      ? 'OPENING CHECKOUT...'
+    : hasCheckoutMinimum
+      ? 'READY FOR CHECKOUT. ADD OR REMOVE ITEMS ANYTIME'
       : 'DRAG INGREDIENTS TO YOUR PLATE';
 
   return (
@@ -338,7 +352,7 @@ const MealBuilder: React.FC = () => {
                   <div
                     key={ingredient.id}
                     className="ingredient-card"
-                    draggable={plateItems.length < MAX_PLATE_ITEMS}
+                    draggable
                     onDragStart={(event) => handleDragStart(event, ingredient)}
                     onClick={() => openIngredientModal(ingredient)}
                   >
@@ -422,7 +436,7 @@ const MealBuilder: React.FC = () => {
               })}
             </div>
             <p className="build-step">
-              Build your meal ({plateItems.length}/{MAX_PLATE_ITEMS})
+              Build your meal ({plateItems.length} item{plateItems.length !== 1 ? 's' : ''})
             </p>
           </div>
 
@@ -488,7 +502,7 @@ const MealBuilder: React.FC = () => {
                   <span>Location</span>
                 </div>
                 <div className="s-macro">
-                  <strong>{plateItems.length}/{MAX_PLATE_ITEMS}</strong>
+                  <strong>{plateItems.length}</strong>
                   <span>On Plate</span>
                 </div>
               </div>
@@ -570,11 +584,17 @@ const MealBuilder: React.FC = () => {
             </div>
           </div>
 
-          <button className="add-more-btn" disabled={plateItems.length < MAX_PLATE_ITEMS}>
-            {plateItems.length >= MAX_PLATE_ITEMS
-              ? 'Complete - Proceed to Checkout'
-              : `Add ${Math.max(0, MAX_PLATE_ITEMS - plateItems.length)} More item${
-                  plateItems.length >= MAX_PLATE_ITEMS - 1 ? '' : 's'
+          <button
+            className="add-more-btn"
+            disabled={!hasCheckoutMinimum || isCheckoutLoading}
+            onClick={handleProceedToCheckout}
+          >
+            {isCheckoutLoading
+              ? 'Loading...'
+              : hasCheckoutMinimum
+                ? 'Complete - Proceed to Checkout'
+              : `Add ${Math.max(0, MIN_CHECKOUT_ITEMS - plateItems.length)} More item${
+                  MIN_CHECKOUT_ITEMS - plateItems.length === 1 ? '' : 's'
                 } to Order`}
           </button>
         </aside>
