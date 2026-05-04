@@ -309,10 +309,6 @@ const MealBuilder: React.FC = () => {
                 </option>
               ))}
             </select>
-            <div className="location-meta">
-              <span>{currentLocation?.location_type || 'Kitchen'}</span>
-              <span>{catalogMeta?.total_ingredients ?? 0} live ingredients</span>
-            </div>
           </div>
 
           <h5 className="sidebar-title">INGREDIENTS</h5>

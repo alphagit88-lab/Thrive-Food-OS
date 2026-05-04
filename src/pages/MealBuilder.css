@@ -45,15 +45,6 @@
   background-position: right 16px center;
 }
 
-.location-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-  color: #8a8888;
-  font-size: 11px;
-}
-
 .sidebar-title { 
   color: #666; 
   font-size: 11px; 
