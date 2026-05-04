@@ -260,16 +260,16 @@
   display: block; 
   color: #b5ff00; 
   font-family: 'Inter', sans-serif;
-  font-size: clamp(30px, 3vw, 36px);
+  font-size: clamp(24px, 2.4vw, 30px);
   font-weight: 700;
   line-height: 0.95;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   text-shadow: 0 0 12px rgba(181, 255, 0, 0.22);
 }
 .m-stat span { 
   color: #f1f1eb; 
   font-family: 'Inter', sans-serif;
-  font-size: 12px; 
+  font-size: 11px; 
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1;
