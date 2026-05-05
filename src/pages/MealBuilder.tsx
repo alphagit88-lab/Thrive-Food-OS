@@ -1,10 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import IngredientModal from '../modals/IngredientModal';
 import foodPlate from '../assets/food-plate.png';
 import { getFoodOsIngredients, getFoodOsLocations } from '../services/mealBuilderService';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  addPlateItem,
+  removePlateItem,
+  selectLocation,
+  setCheckoutDraft,
+  setMealName,
+  setSelectedDelivery,
+} from '../store/slices/mealBuilderSlice';
 import { createEmptyMacros, getPlateItemMacros } from '../utils/nutrition';
 import type {
+  CustomerOrderDraft,
   PlateItem,
   ThriveIngredient,
   ThriveIngredientCategory,
@@ -15,7 +25,6 @@ import type {
 } from '../types/types';
 import './MealBuilder.css';
 
-const LOCATION_STORAGE_KEY = 'thrive-food-os:selected-location';
 const MIN_CHECKOUT_ITEMS = 3;
 
 const toDisplayText = (value: string) =>
@@ -104,22 +113,24 @@ const formatIngredientKcalPer100g = (ingredient: ThriveIngredient) => {
 };
 
 const MealBuilder: React.FC = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const catalogCacheRef = useRef<Record<string, ThriveIngredientsResponse>>({});
   const checkoutTimeoutRef = useRef<number | null>(null);
   const [locations, setLocations] = useState<ThriveLocation[]>([]);
-  const [selectedLocationId, setSelectedLocationId] = useState('');
   const [catalog, setCatalog] = useState<ThriveIngredientCategory[]>([]);
   const [catalogMeta, setCatalogMeta] = useState<ThriveIngredientsMeta | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [plateItems, setPlateItems] = useState<PlateItem[]>([]);
-  const [selectedDelivery, setSelectedDelivery] = useState('now');
   const [activeIngredient, setActiveIngredient] = useState<ThriveIngredient | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
+  const selectedLocationId = useAppSelector((state) => state.mealBuilder.selectedLocationId);
+  const plateItems = useAppSelector((state) => state.mealBuilder.plateItems);
+  const selectedDelivery = useAppSelector((state) => state.mealBuilder.selectedDelivery);
+  const mealName = useAppSelector((state) => state.mealBuilder.mealName);
 
   useEffect(() => {
     let isMounted = true;
@@ -147,13 +158,11 @@ const MealBuilder: React.FC = () => {
         setLocations(locationData);
 
         if (!locationData.length) {
-          setSelectedLocationId('');
+          dispatch(selectLocation(''));
           return;
         }
 
-        const storedLocationId = window.localStorage.getItem(LOCATION_STORAGE_KEY);
-        if (storedLocationId && locationData.some((location) => location.id === storedLocationId)) {
-          setSelectedLocationId(storedLocationId);
+        if (selectedLocationId && locationData.some((location) => location.id === selectedLocationId)) {
           return;
         }
 
@@ -170,7 +179,7 @@ const MealBuilder: React.FC = () => {
           }
         }
 
-        setSelectedLocationId(preferredLocationId);
+        dispatch(selectLocation(preferredLocationId));
       } catch (error) {
         if (!isMounted) {
           return;
@@ -190,7 +199,7 @@ const MealBuilder: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [dispatch, selectedLocationId]);
 
   useEffect(() => {
     if (!selectedLocationId) {
@@ -235,7 +244,6 @@ const MealBuilder: React.FC = () => {
         });
         setActiveIngredient(null);
         setModalOpen(false);
-        window.localStorage.setItem(LOCATION_STORAGE_KEY, selectedLocationId);
       } catch (error) {
         if (!isMounted) {
           return;
@@ -320,18 +328,29 @@ const MealBuilder: React.FC = () => {
   };
 
   const handleAddToPlate = (item: PlateItem) => {
-    setPlateItems((previousItems) => [...previousItems, item]);
+    dispatch(addPlateItem(item));
   };
 
   const handleRemoveItem = (id: string) => {
-    setPlateItems((previousItems) => previousItems.filter((item) => item.id !== id));
+    dispatch(removePlateItem(id));
   };
 
   const handleProceedToCheckout = () => {
-    if (!hasCheckoutMinimum || isCheckoutLoading) {
+    if (!hasCheckoutMinimum || isCheckoutLoading || !currentLocation) {
       return;
     }
 
+    const draft: CustomerOrderDraft = {
+      meal_name: mealName.trim() || 'Custom Thrive Plate',
+      location_id: currentLocation.id,
+      location_name: currentLocation.name,
+      total_price: totalPrice,
+      delivery_type: selectedDelivery,
+      plate_items: plateItems,
+      created_at: new Date().toISOString(),
+    };
+
+    dispatch(setCheckoutDraft(draft));
     setIsCheckoutLoading(true);
 
     checkoutTimeoutRef.current = window.setTimeout(() => {
@@ -357,7 +376,7 @@ const MealBuilder: React.FC = () => {
             <select
               className="location-select"
               value={selectedLocationId}
-              onChange={(event) => setSelectedLocationId(event.target.value)}
+              onChange={(event) => dispatch(selectLocation(event.target.value))}
               disabled={isLoadingLocations || !locations.length}
             >
               {locations.length ? null : <option value="">No locations found</option>}
@@ -543,9 +562,9 @@ const MealBuilder: React.FC = () => {
 
               <div className="suggestion-footer">
                 <span className="suggestion-price">{formatPrice(totalPrice, plateCurrency)}</span>
-                <Link to="/order">
-                  <button className="buy-now-btn">Buy Now</button>
-                </Link>
+                <button className="buy-now-btn" onClick={handleProceedToCheckout}>
+                  Buy Now
+                </button>
               </div>
             </div>
           </div>
@@ -588,7 +607,12 @@ const MealBuilder: React.FC = () => {
 
           <div className="name-meal-input">
             <p>Every meal you build gets a name and a place in our community.</p>
-            <input type="text" placeholder="Name your meal" />
+            <input
+              type="text"
+              placeholder="Name your meal"
+              value={mealName}
+              onChange={(event) => dispatch(setMealName(event.target.value))}
+            />
           </div>
 
           <div className="delivery-options">
@@ -596,7 +620,7 @@ const MealBuilder: React.FC = () => {
             <div className="delivery-buttons">
               <button
                 className={`delivery-btn order-now-btn ${selectedDelivery === 'now' ? 'active' : ''}`}
-                onClick={() => setSelectedDelivery('now')}
+                onClick={() => dispatch(setSelectedDelivery('now'))}
               >
                 <div className="opt-text">
                   <strong>Order Now</strong>
@@ -607,7 +631,7 @@ const MealBuilder: React.FC = () => {
 
               <button
                 className={`delivery-btn ${selectedDelivery === 'schedule' ? 'active' : ''}`}
-                onClick={() => setSelectedDelivery('schedule')}
+                onClick={() => dispatch(setSelectedDelivery('schedule'))}
               >
                 <div className="opt-text">
                   <strong>Schedule</strong>

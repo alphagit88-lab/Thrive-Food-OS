@@ -97,6 +97,12 @@
 
 .toggle-btn {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 4px;
+    min-height: 74px;
     padding: 10px;
     background-color: #2B2B2B;
     border-radius: 5px;
@@ -114,14 +120,15 @@
 .main-text {
     font-size: 12px;
     font-weight: 600;
-    margin-bottom: 8px;
-    line-height: 0.7;
+    margin: 0;
+    line-height: 1.25;
 }
 
 .sub-text {
     font-size: 10px;
     color: var(--text-muted);
-    line-height: 0.5;
+    margin: 0;
+    line-height: 1.35;
 }
 
 .address-display {
@@ -193,7 +200,7 @@
     padding: 5px;
     border-radius: 2px;
     display: inline-block;
-    margin-top: 10px;
+    margin-top: auto;
     line-height: 1;
 }
 
@@ -331,6 +338,11 @@
     margin: 20px 60px 5px 60px;
 }
 
+.place-order-btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
 .place-order-btn:hover {
     background: #c0ff2a;
 }
@@ -396,6 +408,41 @@
     padding: 5px 15px;
     font-size: 13px;
     cursor: pointer;
+}
+
+.manage-btn.status-received {
+    border-color: #ffffff;
+    color: #ffffff;
+}
+
+.manage-btn.status-accepted {
+    border-color: #67d6ff;
+    color: #67d6ff;
+    background: rgba(103, 214, 255, 0.08);
+}
+
+.manage-btn.status-preparing {
+    border-color: #ffd53d;
+    color: #ffd53d;
+    background: rgba(255, 213, 61, 0.08);
+}
+
+.manage-btn.status-ready {
+    border-color: #6fffbb;
+    color: #6fffbb;
+    background: rgba(111, 255, 187, 0.08);
+}
+
+.manage-btn.status-delivered {
+    border-color: var(--lime-green);
+    color: var(--lime-green);
+    background: rgba(212, 255, 63, 0.08);
+}
+
+.manage-btn.status-cancelled {
+    border-color: #ff8d8d;
+    color: #ff8d8d;
+    background: rgba(255, 92, 92, 0.08);
 }
 
 /* Tabs */
@@ -493,21 +540,134 @@
     font-size: 10px;
 }
 
-/* Add Card Button */
-.add-card-full {
-    width: 90%;
-    background: transparent;
-    color: #fff;
-    border: 1px solid #fff;
-    border-radius: 5px;
-    padding: 10px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: 0.2s;
-    margin: 0px 0px 10px 0px;
+.order-feedback {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0px 10px 15px 10px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #303030;
+    background: #1d1d1d;
+    text-align: left;
+    font-size: 12px;
 }
 
-.add-card-full:hover {
-    background: rgba(255, 255, 255, 0.05);
+.order-feedback strong {
+    color: #fff;
+}
+
+.order-feedback span {
+    color: var(--text-muted);
+}
+
+.order-feedback.success {
+    border-color: #3B4A16;
+    background: #1a200d;
+}
+
+.order-feedback.success.status-accepted {
+    border-color: rgba(103, 214, 255, 0.24);
+    background: rgba(9, 33, 43, 0.9);
+}
+
+.order-feedback.success.status-preparing {
+    border-color: rgba(255, 213, 61, 0.24);
+    background: rgba(46, 37, 7, 0.9);
+}
+
+.order-feedback.success.status-ready {
+    border-color: rgba(111, 255, 187, 0.24);
+    background: rgba(10, 40, 27, 0.9);
+}
+
+.order-feedback.error {
+    border-color: rgba(255, 92, 92, 0.35);
+    background: rgba(90, 22, 22, 0.35);
+    color: #ffc3c3;
+}
+
+.placed-order-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 10px 0px 10px;
+    color: #fff;
+    font-size: 12px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-pill.status-received {
+    background: rgba(212, 255, 63, 0.14);
+    color: var(--lime-green);
+}
+
+.status-pill.status-accepted {
+    background: rgba(103, 214, 255, 0.14);
+    color: #67d6ff;
+}
+
+.status-pill.status-preparing {
+    background: rgba(255, 213, 61, 0.14);
+    color: #ffd53d;
+}
+
+.status-pill.status-ready {
+    background: rgba(111, 255, 187, 0.14);
+    color: #6fffbb;
+}
+
+.status-pill.status-delivered {
+    background: rgba(212, 255, 63, 0.14);
+    color: var(--lime-green);
+}
+
+.status-pill.status-cancelled {
+    background: rgba(255, 92, 92, 0.16);
+    color: #ff8d8d;
+}
+
+.empty-order-state {
+    width: min(560px, 100%);
+    margin: auto;
+    padding: 48px 32px;
+    border: 1px dashed #313131;
+    border-radius: 20px;
+    background: #171717;
+}
+
+.empty-order-state h2 {
+    margin-top: 0;
+}
+
+.empty-order-state p {
+    color: var(--text-muted);
+}
+
+.empty-order-button {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 1100px) {
+    .order-container {
+        flex-direction: column;
+        padding: 24px;
+    }
+
+    .sidebar,
+    .plate-sidebar,
+    .main-summary {
+        width: 100%;
+    }
 }

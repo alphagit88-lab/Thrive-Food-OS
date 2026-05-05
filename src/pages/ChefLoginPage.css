@@ -1,0 +1,184 @@
+.chef-login-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(212, 255, 63, 0.18), transparent 30%),
+    linear-gradient(180deg, #080808 0%, #111111 100%);
+  color: #f5f5f5;
+  padding: 32px;
+}
+
+.chef-login-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+}
+
+.chef-login-panel {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.chef-login-copy h1 {
+  font-size: clamp(2.6rem, 5vw, 4.4rem);
+  line-height: 0.95;
+  margin: 12px 0 16px;
+  text-align: left;
+}
+
+.chef-login-copy p {
+  max-width: 520px;
+  color: rgba(245, 245, 245, 0.72);
+  font-size: 1rem;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.chef-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid rgba(212, 255, 63, 0.3);
+  border-radius: 999px;
+  color: #d4ff3f;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+}
+
+.chef-login-notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.chef-login-notes div {
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 18px;
+  text-align: left;
+}
+
+.chef-login-notes strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.chef-login-notes span {
+  color: rgba(245, 245, 245, 0.72);
+  font-size: 0.92rem;
+}
+
+.chef-login-card {
+  background: rgba(20, 20, 20, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.chef-field-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #d4ff3f;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.chef-field {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #101010;
+  color: #ffffff;
+  margin-bottom: 18px;
+  font-size: 0.98rem;
+}
+
+.chef-field:focus {
+  outline: none;
+  border-color: rgba(212, 255, 63, 0.65);
+  box-shadow: 0 0 0 4px rgba(212, 255, 63, 0.12);
+}
+
+.chef-login-error {
+  margin: 6px 0 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 91, 91, 0.12);
+  border: 1px solid rgba(255, 91, 91, 0.35);
+  color: #ffb2b2;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.chef-login-button {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: #d4ff3f;
+  color: #0f0f0f;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.chef-login-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.chef-login-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 0.9rem;
+}
+
+.chef-login-footer a {
+  color: rgba(245, 245, 245, 0.7);
+  text-decoration: none;
+}
+
+.chef-login-footer a:hover {
+  color: #d4ff3f;
+}
+
+@media (max-width: 900px) {
+  .chef-login-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .chef-login-copy p {
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .chef-login-page {
+    padding: 20px;
+  }
+
+  .chef-login-notes {
+    grid-template-columns: 1fr;
+  }
+
+  .chef-login-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
