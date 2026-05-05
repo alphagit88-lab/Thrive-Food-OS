@@ -139,3 +139,93 @@ export interface PlateItem {
   image: string | null;
   macros: PlateItemMacros;
 }
+
+export interface CustomerOrderDraft {
+  meal_name: string;
+  location_id: string;
+  location_name: string;
+  total_price: number;
+  delivery_type: 'now' | 'schedule';
+  plate_items: PlateItem[];
+  created_at: string;
+}
+
+export interface FoodOsOrderMetadata {
+  source: 'thrive-food-os';
+  meal_name: string;
+  delivery_type: 'now' | 'schedule';
+  location_name: string;
+  total_price: number;
+  created_at: string;
+  realtime_token?: string;
+  plate_items: PlateItem[];
+}
+
+export interface FoodOsCreateOrderPayload {
+  location_id: string;
+  notes?: string;
+  items: {
+    menu_item_id?: string;
+    quantity: number;
+    unit_price: number;
+    notes?: string;
+  }[];
+}
+
+export interface ChefUser {
+  id: string;
+  location_id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'manager' | 'staff' | 'kitchen_staff';
+  account_status: 'active' | 'inactive' | 'suspended';
+  created_at: string;
+  updated_at: string;
+  location_name?: string;
+}
+
+export interface ChefSession {
+  token: string;
+  user: ChefUser;
+}
+
+export type ChefOrderStatus =
+  | 'received'
+  | 'accepted'
+  | 'preparing'
+  | 'ready'
+  | 'delivered'
+  | 'cancelled';
+
+export interface ChefOrderItem {
+  id: string;
+  order_id: string;
+  menu_item_id?: string | null;
+  menu_item_name?: string | null;
+  menu_item_description?: string | null;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface ChefOrder {
+  id: string;
+  location_id: string;
+  customer_id?: string | null;
+  order_number?: string;
+  status: ChefOrderStatus;
+  total_price: number;
+  notes?: string | null;
+  order_date: string;
+  delivered_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  customer_name?: string | null;
+  customer_email?: string | null;
+  customer_phone?: string | null;
+  location_name?: string | null;
+  items?: ChefOrderItem[];
+  metadata?: FoodOsOrderMetadata | null;
+}

@@ -18,6 +18,10 @@ const LoginPage: React.FC = () => {
 		navigate('/signUp');
 	};
 
+	const onChefLoginClick = () => {
+		navigate('/chef/login');
+	};
+
 	const onSendCodeClick = async () => {
 		if (!phoneNumber) {
 			alert("Please enter your phone number");
@@ -114,6 +118,7 @@ const LoginPage: React.FC = () => {
 								</button>
 
 								<button className="btn-create" onClick={onCreateAccountClick}>Create Account</button>
+								<button className="btn-chef-login" onClick={onChefLoginClick}>Kitchen Chef Login</button>
 
 								<div className="divider">
 									<span>Or continue with</span>
