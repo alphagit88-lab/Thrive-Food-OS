@@ -1,18 +1,38 @@
 import API from './apiClient';
-import type { UserData, AuthResponse } from '../types/types';
+import type { AuthResponse, UserData } from '../types/types';
 
-// Check if a user exists
-export const checkPhone = (phone: string) => 
-  API.post<AuthResponse>('/auth/check-phone', { phone });
+interface AuthPayload extends UserData {
+  location_id?: string;
+}
 
-// Send OTP code
-export const sendOtp = (phone: string) => 
-  API.post<AuthResponse>('/auth/send-otp', { phone });
+export const checkPhone = (phone: string, locationId?: string) =>
+  API.post<AuthResponse>('/auth/check-phone', {
+    phone,
+    location_id: locationId,
+  });
 
-// Verify OTP code
-export const verifyOtp = (otp: string) => 
-  API.post<AuthResponse>('/auth/verify-otp', { otp });
+export const sendOtp = (phone: string, locationId?: string) =>
+  API.post<AuthResponse>('/auth/send-otp', {
+    phone,
+    location_id: locationId,
+  });
 
-// Final Registration
-export const registerUser = (userData: UserData) => 
-  API.post<AuthResponse>('/auth/register', userData);
+export const verifyOtp = (phone: string, otp: string, locationId?: string) =>
+  API.post<AuthResponse>('/auth/verify-otp', {
+    phone,
+    otp,
+    location_id: locationId,
+  });
+
+export const registerUser = (userData: UserData, locationId?: string) =>
+  API.post<AuthResponse>('/auth/register', {
+    ...userData,
+    location_id: locationId,
+  } satisfies AuthPayload);
+
+export const loginCustomer = (payload: {
+  email?: string;
+  phone?: string;
+  password: string;
+  location_id?: string;
+}) => API.post<AuthResponse>('/auth/login', payload);

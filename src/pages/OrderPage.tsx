@@ -11,6 +11,7 @@ import type { ChefOrder, CustomerOrderDraft, PlateItem } from '../types/types';
 import {
   ORDER_STATUS_SYNC_EVENT,
   ORDER_STATUS_SYNC_STORAGE_KEY,
+  readCustomerSession,
   readSyncedChefOrder,
 } from '../utils/storage';
 import { formatCustomerOrderStatusLabel, getCustomerOrderStatusCopy } from '../utils/orderStatus';
@@ -129,6 +130,12 @@ const OrderPage: React.FC = () => {
       return;
     }
 
+    const customerSession = readCustomerSession();
+    if (!customerSession?.token || !customerSession.user?.id) {
+      navigate('/login?redirect=%2Forder');
+      return;
+    }
+
     setPlacingOrder(true);
     setError('');
 
@@ -140,6 +147,7 @@ const OrderPage: React.FC = () => {
 
       const createdOrder = await createFoodOsOrder({
         location_id: draft.location_id,
+        customer_id: customerSession?.user?.id,
         notes: buildFoodOsOrderNote(nextDraft),
         items: draft.plate_items.map((item) => ({
           quantity: 1,

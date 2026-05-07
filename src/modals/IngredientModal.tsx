@@ -24,6 +24,13 @@ const formatDisplayName = (value: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
+const createPlateItemId = (
+  ingredientId: string,
+  variant: string,
+  quantityId: string,
+  cookTypeId: string,
+) => `${ingredientId}-${variant || 'default'}-${quantityId}-${cookTypeId || 'default'}-${crypto.randomUUID()}`;
+
 const getQuantityDisplay = (quantityValue: string, quantityGrams: number | null) => {
   if (quantityGrams && quantityGrams > 0) {
     return {
@@ -97,7 +104,12 @@ const IngredientModal: React.FC<ModalProps> = ({ ingredient, onClose, onAddToPla
     }
 
     const newItem: PlateItem = {
-      id: `${ingredient.id}-${selectedVariant || 'default'}-${selectedQuantity.id}-${selectedCookType?.id || 'default'}-${Date.now()}`,
+      id: createPlateItemId(
+        ingredient.id,
+        selectedVariant,
+        selectedQuantity.id,
+        selectedCookType?.id || 'default',
+      ),
       ingredient_id: ingredient.id,
       name: ingredient.name,
       variant: selectedVariant,

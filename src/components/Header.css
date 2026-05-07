@@ -20,6 +20,7 @@
 .header-nav {
   display: flex;
   gap: 30px;
+  align-items: center;
 }
 
 .nav {
@@ -62,4 +63,56 @@
 
 .sign-up-btn:active {
   transform: scale(0.95); /* Adds a nice "pressed" effect */
+}
+
+.header-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-account-name {
+  color: #b5ff00;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-login-btn {
+  border-color: #3B4A16;
+  color: #b5ff00;
+}
+
+.auth-login-btn:hover {
+  background-color: #b5ff00;
+  color: #121212;
+}
+
+.auth-logout-btn {
+  border-color: #3B4A16;
+  color: #b5ff00;
+}
+
+.auth-logout-btn:hover {
+  background-color: #b5ff00;
+  color: #121212;
+}
+
+@media (max-width: 960px) {
+  .header-content {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .header-nav {
+    width: 100%;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
