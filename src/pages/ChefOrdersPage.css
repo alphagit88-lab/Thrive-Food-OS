@@ -51,6 +51,98 @@ body.chef-orders-route {
   font-size: 16px;
 }
 
+.chef-board-date-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chef-board-date-button,
+.chef-board-calendar-button {
+  min-height: 40px;
+  border: 1px solid #cfcfcf;
+  background: #dcdcdc;
+  color: #111111;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.chef-board-date-button {
+  min-width: 190px;
+  padding: 0 16px;
+  text-align: center;
+}
+
+.chef-board-date-button.is-active {
+  background: #cfcfcf;
+}
+
+.chef-board-calendar-button {
+  width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.chef-board-calendar-button.is-active {
+  background: #cfcfcf;
+}
+
+.chef-board-date-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 5;
+  min-width: 260px;
+  padding: 14px;
+  border: 1px solid #cfcfcf;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.12);
+}
+
+.chef-board-date-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: #111111;
+  font-size: 14px;
+}
+
+.chef-board-date-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.chef-board-date-field input {
+  min-height: 38px;
+  border: 1px solid #cfcfcf;
+  padding: 0 12px;
+  font-size: 15px;
+}
+
+.chef-board-date-panel-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.chef-board-date-panel-button {
+  min-height: 38px;
+  border: 1px solid #cfcfcf;
+  background: #efefef;
+  color: #111111;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.chef-board-date-panel-button.is-primary {
+  background: #262122;
+  border-color: #262122;
+  color: #ffffff;
+}
+
 .chef-board-alert {
   margin: 14px 28px 0;
   padding: 12px 14px;
@@ -251,9 +343,24 @@ body.chef-orders-route {
     align-items: stretch;
   }
 
+  .chef-board-date-controls {
+    width: 100%;
+  }
+
+  .chef-board-date-button {
+    flex: 1;
+    min-width: 0;
+  }
+
   .chef-board-location-filter {
     min-width: 0;
     width: 100%;
+  }
+
+  .chef-board-date-panel {
+    left: 0;
+    right: 0;
+    min-width: 0;
   }
 
   .chef-board-alert {
