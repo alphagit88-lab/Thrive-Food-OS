@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MdOutlineCalendarMonth } from 'react-icons/md';
 import { getFoodOsLocations } from '../services/mealBuilderService';
 import { getChefOrders, normalizeChefOrder, updateChefOrderStatus } from '../services/orderService';
 import {
@@ -44,6 +45,43 @@ const syncChefOrder = (order: ChefOrder) => {
   return normalizedOrder;
 };
 
+const getNormalizedDateRange = (startDate: string, endDate: string) => {
+  const fallbackDate = getLocalDateValue(new Date());
+  const safeStartDate = startDate || fallbackDate;
+  const safeEndDate = endDate || safeStartDate;
+
+  if (safeStartDate <= safeEndDate) {
+    return { startDate: safeStartDate, endDate: safeEndDate };
+  }
+
+  return { startDate: safeEndDate, endDate: safeStartDate };
+};
+
+const matchesKitchenBoardFilters = (
+  order: ChefOrder,
+  locationFilter: string,
+  startDate: string,
+  endDate: string,
+) => {
+  if (locationFilter !== 'all' && order.location_id !== locationFilter) {
+    return false;
+  }
+
+  const orderTimestamp = new Date(order.order_date || order.created_at);
+
+  if (Number.isNaN(orderTimestamp.getTime())) {
+    return false;
+  }
+
+  const year = orderTimestamp.getFullYear();
+  const month = String(orderTimestamp.getMonth() + 1).padStart(2, '0');
+  const day = String(orderTimestamp.getDate()).padStart(2, '0');
+  const orderDate = `${year}-${month}-${day}`;
+  const normalizedRange = getNormalizedDateRange(startDate, endDate);
+
+  return orderDate >= normalizedRange.startDate && orderDate <= normalizedRange.endDate;
+};
+
 const titleCase = (value?: string | null) =>
   (value || '')
     .replace(/[_-]+/g, ' ')
@@ -61,6 +99,60 @@ const formatBoardTime = (value?: string) =>
     minute: '2-digit',
     hour12: true,
   }).format(new Date(value || Date.now()));
+
+const getLocalDateValue = (value: Date) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+const formatSelectedDateLabel = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    return 'Today';
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(year, month - 1, day));
+};
+
+const formatCompactDateLabel = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    return 'Today';
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(year, month - 1, day));
+};
+
+const formatDateRangeLabel = (startDate: string, endDate: string, todayDateValue: string) => {
+  const normalizedRange = getNormalizedDateRange(startDate, endDate);
+
+  if (
+    normalizedRange.startDate === todayDateValue &&
+    normalizedRange.endDate === todayDateValue
+  ) {
+    return 'Today';
+  }
+
+  if (normalizedRange.startDate === normalizedRange.endDate) {
+    return formatSelectedDateLabel(normalizedRange.startDate);
+  }
+
+  return `${formatCompactDateLabel(normalizedRange.startDate)} - ${formatSelectedDateLabel(
+    normalizedRange.endDate,
+  )}`;
+};
 
 const formatElapsedTime = (value: string, currentTimeMs: number) => {
   const elapsedSeconds = Math.max(0, Math.floor((currentTimeMs - new Date(value).getTime()) / 1000));
@@ -268,16 +360,85 @@ const printKitchenTicket = (
   return true;
 };
 
+const createFallbackLocation = (locationId: string, locationName?: string): ThriveLocation => ({
+  id: locationId,
+  name: locationName || 'Assigned Kitchen',
+  currency: 'LKR',
+  location_type: null,
+  address: null,
+  phone: null,
+  status: 'active',
+});
+
 const ChefOrdersPage: React.FC = () => {
   const navigate = useNavigate();
+  const dateControlsRef = useRef<HTMLDivElement | null>(null);
   const [orders, setOrders] = useState<ChefOrder[]>([]);
   const [chefToken, setChefToken] = useState('');
+  const [chefLocationId, setChefLocationId] = useState('');
+  const [chefLocationName, setChefLocationName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [locations, setLocations] = useState<ThriveLocation[]>([]);
   const [selectedLocationFilter, setSelectedLocationFilter] = useState('all');
   const [currentTimeMs, setCurrentTimeMs] = useState(() => Date.now());
+  const [selectedStartDate, setSelectedStartDate] = useState(() => getLocalDateValue(new Date()));
+  const [selectedEndDate, setSelectedEndDate] = useState(() => getLocalDateValue(new Date()));
+  const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
+  const activeLocationFilter = chefLocationId || selectedLocationFilter;
+  const todayDateValue = getLocalDateValue(new Date(currentTimeMs));
+  const normalizedSelectedDateRange = getNormalizedDateRange(selectedStartDate, selectedEndDate);
+  const isTodaySelected =
+    normalizedSelectedDateRange.startDate === todayDateValue &&
+    normalizedSelectedDateRange.endDate === todayDateValue;
+  const selectedDateLabel = formatDateRangeLabel(
+    normalizedSelectedDateRange.startDate,
+    normalizedSelectedDateRange.endDate,
+    todayDateValue,
+  );
+
+  const locationFilterOptions = useMemo(() => {
+    if (locations.length) {
+      return locations;
+    }
+
+    if (chefLocationId) {
+      return [createFallbackLocation(chefLocationId, chefLocationName)];
+    }
+
+    return [];
+  }, [chefLocationId, chefLocationName, locations]);
+
+  const handleTodayRange = () => {
+    setSelectedStartDate(todayDateValue);
+    setSelectedEndDate(todayDateValue);
+    setIsDateRangeOpen(false);
+  };
+
+  const handleStartDateChange = (nextStartDate: string) => {
+    if (!nextStartDate) {
+      return;
+    }
+
+    setSelectedStartDate(nextStartDate);
+
+    if (nextStartDate > selectedEndDate) {
+      setSelectedEndDate(nextStartDate);
+    }
+  };
+
+  const handleEndDateChange = (nextEndDate: string) => {
+    if (!nextEndDate) {
+      return;
+    }
+
+    if (nextEndDate < selectedStartDate) {
+      setSelectedStartDate(nextEndDate);
+    }
+
+    setSelectedEndDate(nextEndDate);
+  };
 
   useEffect(() => {
     const rootElement = document.getElementById('root');
@@ -301,6 +462,24 @@ const ChefOrdersPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!isDateRangeOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!dateControlsRef.current?.contains(event.target as Node)) {
+        setIsDateRangeOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [isDateRangeOpen]);
+
+  useEffect(() => {
     const session = readChefSession();
 
     if (!session?.token) {
@@ -315,10 +494,16 @@ const ChefOrdersPage: React.FC = () => {
     }
 
     setChefToken(session.token);
+    setChefLocationId(session.user.location_id || '');
+    setChefLocationName(session.user.location_name || '');
     setSelectedLocationFilter(session.user.location_id || 'all');
   }, [navigate]);
 
   useEffect(() => {
+    if (!chefToken) {
+      return;
+    }
+
     let mounted = true;
 
     const loadLocations = async () => {
@@ -329,7 +514,18 @@ const ChefOrdersPage: React.FC = () => {
           return;
         }
 
+        /*
         setLocations(fetchedLocations);
+        */
+        const nextLocations = chefLocationId
+          ? fetchedLocations.filter((location) => location.id === chefLocationId)
+          : fetchedLocations;
+
+        setLocations(nextLocations);
+
+        if (chefLocationId && nextLocations.length) {
+          setChefLocationName(nextLocations[0].name);
+        }
       } catch {
         if (mounted) {
           setLocations([]);
@@ -342,7 +538,7 @@ const ChefOrdersPage: React.FC = () => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [chefLocationId, chefToken]);
 
   useEffect(() => {
     if (!chefToken) {
@@ -356,7 +552,7 @@ const ChefOrdersPage: React.FC = () => {
       setError('');
 
       try {
-        const fetchedOrders = await getChefOrders(chefToken, selectedLocationFilter);
+        const fetchedOrders = await getChefOrders(chefToken, activeLocationFilter);
 
         if (!mounted) {
           return;
@@ -383,7 +579,7 @@ const ChefOrdersPage: React.FC = () => {
     return () => {
       mounted = false;
     };
-  }, [chefToken, selectedLocationFilter]);
+  }, [activeLocationFilter, chefToken]);
 
   useEffect(() => {
     if (!chefToken || !isRealtimeConfigured()) {
@@ -400,11 +596,35 @@ const ChefOrdersPage: React.FC = () => {
 
     const handleOrderCreated = (incomingOrder: ChefOrder) => {
       const nextOrder = syncChefOrder(incomingOrder);
+
+      if (
+        !matchesKitchenBoardFilters(
+          nextOrder,
+          activeLocationFilter,
+          normalizedSelectedDateRange.startDate,
+          normalizedSelectedDateRange.endDate,
+        )
+      ) {
+        return;
+      }
+
       setOrders((currentOrders) => upsertOrder(currentOrders, nextOrder));
     };
 
     const handleOrderStatusUpdated = (incomingOrder: ChefOrder) => {
       const nextOrder = syncChefOrder(incomingOrder);
+
+      if (
+        !matchesKitchenBoardFilters(
+          nextOrder,
+          activeLocationFilter,
+          normalizedSelectedDateRange.startDate,
+          normalizedSelectedDateRange.endDate,
+        )
+      ) {
+        return;
+      }
+
       setOrders((currentOrders) => upsertOrder(currentOrders, nextOrder));
     };
 
@@ -421,7 +641,12 @@ const ChefOrdersPage: React.FC = () => {
       pusher.unsubscribe(KITCHEN_ORDERS_CHANNEL);
       pusher.disconnect();
     };
-  }, [chefToken]);
+  }, [
+    activeLocationFilter,
+    chefToken,
+    normalizedSelectedDateRange.endDate,
+    normalizedSelectedDateRange.startDate,
+  ]);
 
   const activeOrders = useMemo(
     () =>
@@ -430,18 +655,24 @@ const ChefOrdersPage: React.FC = () => {
           return false;
         }
 
-        if (selectedLocationFilter === 'all') {
-          return true;
-        }
-
-        return order.location_id === selectedLocationFilter;
+        return matchesKitchenBoardFilters(
+          order,
+          activeLocationFilter,
+          normalizedSelectedDateRange.startDate,
+          normalizedSelectedDateRange.endDate,
+        );
       }),
-    [orders, selectedLocationFilter],
+    [
+      activeLocationFilter,
+      normalizedSelectedDateRange.endDate,
+      normalizedSelectedDateRange.startDate,
+      orders,
+    ],
   );
 
   const locationLookup = useMemo(
-    () => new Map(locations.map((location) => [location.id, location])),
-    [locations],
+    () => new Map(locationFilterOptions.map((location) => [location.id, location])),
+    [locationFilterOptions],
   );
 
   const newOrders = useMemo(
@@ -500,23 +731,34 @@ const ChefOrdersPage: React.FC = () => {
       title: 'New Orders',
       count: newOrders.length,
       orders: newOrders,
-      empty: 'No new orders',
+      empty: `No new orders for ${selectedDateLabel}`,
     },
     {
       id: 'prep',
       title: 'In Preparation',
       count: inPreparationOrders.length,
       orders: inPreparationOrders,
-      empty: 'No orders in preparation',
+      empty: `No orders in preparation for ${selectedDateLabel}`,
     },
     {
       id: 'ready',
       title: 'Ready Collected',
       count: readyOrders.length,
       orders: readyOrders,
-      empty: 'No ready orders',
+      empty: `No ready orders for ${selectedDateLabel}`,
     },
   ] as const;
+
+  /*
+  <div className="chef-board-date-controls">
+    <button type="button" className="chef-board-date-button" onClick={() => setSelectedDate(todayDateValue)}>
+      {selectedDateLabel}
+    </button>
+    <button type="button" className="chef-board-calendar-button" onClick={openDatePicker}>
+      <MdOutlineCalendarMonth size={22} />
+    </button>
+  </div>
+  */
 
   return (
     <div className="chef-orders-page">
@@ -525,18 +767,62 @@ const ChefOrdersPage: React.FC = () => {
           Back
         </button>
 
-        <select
-          className="chef-board-location-filter"
-          value={selectedLocationFilter}
-          onChange={(event) => setSelectedLocationFilter(event.target.value)}
-        >
-          <option value="all">All Kitchens</option>
-          {locations.map((location) => (
-            <option key={location.id} value={location.id}>
-              {location.name}
-            </option>
-          ))}
-        </select>
+        <div className="chef-board-date-controls" ref={dateControlsRef}>
+          <button
+            type="button"
+            className={`chef-board-date-button ${isTodaySelected ? 'is-active' : ''}`}
+            onClick={handleTodayRange}
+          >
+            {selectedDateLabel}
+          </button>
+
+          <button
+            type="button"
+            className={`chef-board-calendar-button ${isDateRangeOpen ? 'is-active' : ''}`}
+            onClick={() => setIsDateRangeOpen((currentState) => !currentState)}
+            aria-label="Open date range picker"
+            title="Select order range"
+          >
+            <MdOutlineCalendarMonth size={22} />
+          </button>
+
+          {isDateRangeOpen ? (
+            <div className="chef-board-date-panel">
+              <label className="chef-board-date-field">
+                <span>From</span>
+                <input
+                  type="date"
+                  value={normalizedSelectedDateRange.startDate}
+                  onChange={(event) => handleStartDateChange(event.target.value)}
+                  aria-label="Select start date"
+                />
+              </label>
+
+              <label className="chef-board-date-field">
+                <span>To</span>
+                <input
+                  type="date"
+                  value={normalizedSelectedDateRange.endDate}
+                  onChange={(event) => handleEndDateChange(event.target.value)}
+                  aria-label="Select end date"
+                />
+              </label>
+
+              <div className="chef-board-date-panel-actions">
+                <button type="button" className="chef-board-date-panel-button" onClick={handleTodayRange}>
+                  Today
+                </button>
+                <button
+                  type="button"
+                  className="chef-board-date-panel-button is-primary"
+                  onClick={() => setIsDateRangeOpen(false)}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </header>
 
       {error ? <div className="chef-board-alert">{error}</div> : null}
