@@ -80,6 +80,9 @@ const formatPlateItemQuantity = (item: PlateItem) => {
   return item.quantity_label ? `${item.quantity_label} / ${gramsLabel}` : gramsLabel;
 };
 
+const getPlateItemTags = (item: PlateItem) =>
+  [item.variant, item.specification || item.quantity_label, item.cook_style].filter(Boolean);
+
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (
     typeof error === 'object' &&
@@ -587,8 +590,11 @@ const MealBuilder: React.FC = () => {
                     <span>{formatPlateItemQuantity(item)}</span>
                   </div>
                   <div className="item-tags">
-                    <span className="tag-accent">{item.specification || item.quantity_label}</span>
-                    <span className="tag-accent">{item.cook_style}</span>
+                    {getPlateItemTags(item).map((tag) => (
+                      <span key={`${item.id}-${tag}`} className="tag-accent">
+                        {tag}
+                      </span>
+                    ))}
                     <button className="remove-item" onClick={() => handleRemoveItem(item.id)}>
                       &times;
                     </button>

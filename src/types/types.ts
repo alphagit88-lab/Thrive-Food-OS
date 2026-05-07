@@ -60,6 +60,7 @@ export interface ThriveIngredient {
   category_name: string;
   food_type_id: string | null;
   food_type_name: string | null;
+  variants: string[];
   specifications: ThriveIngredientOption[];
   cook_types: ThriveIngredientOption[];
   photo_url: string | null;
@@ -74,6 +75,7 @@ export interface ThriveFoodTypeSummary {
   id: string;
   source_id: string;
   name: string;
+  variants?: string[];
   category_id: string | null;
   location_id: string | null;
   is_global: boolean;
@@ -130,6 +132,7 @@ export interface PlateItem {
   id: string;
   ingredient_id: string;
   name: string;
+  variant: string;
   specification: string;
   quantity_label: string;
   grams: number;

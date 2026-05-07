@@ -174,7 +174,9 @@ const getKitchenBoardItems = (order: ChefOrder): KitchenBoardItem[] => {
     return order.metadata.plate_items.map((item: PlateItem) => ({
       id: item.id,
       name: item.name,
-      detail: [item.cook_style, item.quantity_label].filter(Boolean).join('  '),
+      detail: [item.variant, item.specification, item.cook_style, item.quantity_label]
+        .filter(Boolean)
+        .join('  '),
     }));
   }
 
