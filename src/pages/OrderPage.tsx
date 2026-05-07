@@ -27,7 +27,7 @@ const formatMacroValue = (value: number) => {
 };
 
 const getDisplayTags = (item: PlateItem) =>
-  [item.specification, item.cook_style, item.quantity_label].filter(Boolean);
+  [item.variant, item.specification, item.cook_style, item.quantity_label].filter(Boolean);
 
 const OrderPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -144,7 +144,7 @@ const OrderPage: React.FC = () => {
         items: draft.plate_items.map((item) => ({
           quantity: 1,
           unit_price: item.price,
-          notes: [item.name, item.quantity_label, item.specification, item.cook_style]
+          notes: [item.name, item.variant, item.specification, item.cook_style, item.quantity_label]
             .filter(Boolean)
             .join(' | '),
         })),

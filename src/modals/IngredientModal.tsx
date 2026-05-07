@@ -50,10 +50,12 @@ const IngredientModal: React.FC<ModalProps> = ({ ingredient, onClose, onAddToPla
   const availableQuantities = ingredient.quantities.filter((quantity) => quantity.is_available !== false);
   const quantityOptions = availableQuantities.length ? availableQuantities : ingredient.quantities;
   const defaultQuantityId = ingredient.default_quantity?.id || quantityOptions[0]?.id || '';
+  const defaultVariant = ingredient.variants[0] || '';
   const defaultSpecificationId = ingredient.specifications[0]?.id || '';
   const defaultCookTypeId = ingredient.cook_types[0]?.id || '';
 
   const [selectedQuantityId, setSelectedQuantityId] = useState(defaultQuantityId);
+  const [selectedVariant, setSelectedVariant] = useState(defaultVariant);
   const [selectedSpecificationId, setSelectedSpecificationId] = useState(defaultSpecificationId);
   const [selectedCookTypeId, setSelectedCookTypeId] = useState(defaultCookTypeId);
 
@@ -95,9 +97,10 @@ const IngredientModal: React.FC<ModalProps> = ({ ingredient, onClose, onAddToPla
     }
 
     const newItem: PlateItem = {
-      id: `${ingredient.id}-${selectedQuantity.id}-${selectedCookType?.id || 'default'}-${Date.now()}`,
+      id: `${ingredient.id}-${selectedVariant || 'default'}-${selectedQuantity.id}-${selectedCookType?.id || 'default'}-${Date.now()}`,
       ingredient_id: ingredient.id,
       name: ingredient.name,
+      variant: selectedVariant,
       specification: selectedSpecification?.name || '',
       quantity_label: selectedQuantity.quantity_value,
       grams: selectedQuantity.quantity_grams || 0,
@@ -123,6 +126,24 @@ const IngredientModal: React.FC<ModalProps> = ({ ingredient, onClose, onAddToPla
         </div>
 
         <div className="modal-body">
+          {ingredient.variants.length ? (
+            <section className="selection-group">
+              <label>SELECT VARIANT</label>
+              <div className="option-grid wrap">
+                {ingredient.variants.map((variant) => (
+                  <button
+                    key={variant}
+                    className={`opt-btn ${selectedVariant === variant ? 'active' : ''}`}
+                    onClick={() => setSelectedVariant(variant)}
+                    type="button"
+                  >
+                    {variant}
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
           {ingredient.show_specification && ingredient.specifications.length ? (
             <section className="selection-group">
               <label>SELECT CUT</label>

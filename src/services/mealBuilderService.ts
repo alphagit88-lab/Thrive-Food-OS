@@ -89,6 +89,11 @@ const hydrateIngredient = (
 
   const hydratedIngredient: ThriveIngredient = {
     ...ingredient,
+    variants: Array.isArray(ingredient.variants)
+      ? ingredient.variants
+          .map((variant) => String(variant || '').trim())
+          .filter(Boolean)
+      : [],
     show_specification: category.show_specification,
     show_cook_type: category.show_cook_type,
     photos,
