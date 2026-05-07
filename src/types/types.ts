@@ -8,12 +8,30 @@ export interface UserData {
   gender?: string;
 }
 
+export interface CustomerProfile {
+  id?: string;
+  location_id?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dob?: string;
+  gender?: string;
+}
+
+export interface CustomerSession {
+  token?: string;
+  user?: CustomerProfile;
+  authenticated_at: string;
+}
+
 export interface AuthResponse {
   success: boolean;
   message: string;
   exists?: boolean;
   verified?: boolean;
   token?: string;
+  user?: CustomerProfile;
 }
 
 export interface ThriveLocation {
@@ -166,6 +184,7 @@ export interface FoodOsOrderMetadata {
 
 export interface FoodOsCreateOrderPayload {
   location_id: string;
+  customer_id?: string;
   notes?: string;
   items: {
     menu_item_id?: string;

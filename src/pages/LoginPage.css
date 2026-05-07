@@ -126,6 +126,12 @@
     padding: 40px;
 }
 
+.login-card-container {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
 .input-label {
     display: block;
     font-size: 11px;
@@ -143,6 +149,82 @@
     border-radius: 5px;
     color: #fff;
     margin-bottom: 12px;
+}
+
+.login-field {
+    width: 100%;
+    background: #262626;
+    border: none;
+    padding: 16px;
+    border-radius: 5px;
+    color: #fff;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+}
+
+.login-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.login-switch-btn {
+    border: 1px solid #303030;
+    background: transparent;
+    color: #a1a1a1;
+    padding: 12px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.login-switch-btn.active {
+    border-color: var(--lime);
+    color: #111;
+    background: var(--lime);
+}
+
+.login-helper-text {
+    color: var(--text-grey);
+    font-size: 11px;
+    line-height: 1.6;
+    text-align: left;
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
+.login-feedback {
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 91, 91, 0.35);
+    background: rgba(255, 91, 91, 0.12);
+    color: #ffb2b2;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.otp-feedback {
+    margin-top: 10px;
+}
+
+.login-link-row {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 13px;
+}
+
+.login-secondary-link {
+    color: var(--lime);
+    text-decoration: none;
+    font-weight: 700;
 }
 
 .otp-hint {
@@ -414,6 +496,10 @@
         margin: 40px auto; /* Center the card */
     }
 
+    .login-card-container {
+        justify-content: center;
+    }
+
     /* Adjust the massive background text so it doesn't cause overflow */
     .bg-watermark {
         font-size: 40vw;
@@ -454,5 +540,9 @@
     .phone-input {
         width: 100%; /* Adjust padding box-sizing issues */
         box-sizing: border-box; 
+    }
+
+    .login-link-row {
+        flex-direction: column;
     }
 }

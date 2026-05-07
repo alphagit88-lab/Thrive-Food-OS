@@ -23,6 +23,7 @@ import type {
   ThriveIngredientsResponse,
   ThriveLocation,
 } from '../types/types';
+import { readCustomerSession } from '../utils/storage';
 import './MealBuilder.css';
 
 const MIN_CHECKOUT_ITEMS = 3;
@@ -357,8 +358,10 @@ const MealBuilder: React.FC = () => {
     setIsCheckoutLoading(true);
 
     checkoutTimeoutRef.current = window.setTimeout(() => {
+      const customerSession = readCustomerSession();
+
       setIsCheckoutLoading(false);
-      navigate('/order');
+      navigate(customerSession ? '/order' : '/signUp?redirect=%2Forder');
     }, 300);
   };
 
@@ -595,10 +598,10 @@ const MealBuilder: React.FC = () => {
                         {tag}
                       </span>
                     ))}
-                    <button className="remove-item" onClick={() => handleRemoveItem(item.id)}>
-                      &times;
-                    </button>
                   </div>
+                  <button className="remove-item" onClick={() => handleRemoveItem(item.id)}>
+                    &times;
+                  </button>
                 </div>
               ))
             ) : (

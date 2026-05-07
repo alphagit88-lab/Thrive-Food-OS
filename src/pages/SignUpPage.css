@@ -336,6 +336,59 @@
     pointer-events: none;
 }
 
+.signup-page {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.signup-hero-content {
+    align-items: flex-start;
+    gap: 48px;
+    padding-bottom: 40px;
+}
+
+.signup-card {
+    width: min(100%, 480px);
+    height: auto;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    margin-top: 60px;
+    padding: 40px;
+}
+
+.signup-password-grid {
+    align-items: flex-start;
+}
+
+.signup-feedback {
+    margin-top: -10px;
+    margin-bottom: 18px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 91, 91, 0.35);
+    background: rgba(255, 91, 91, 0.12);
+    color: #ffb2b2;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.signup-link-row {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 13px;
+}
+
+.signup-secondary-link {
+    color: #d4ff3f;
+    text-decoration: none;
+    font-weight: 700;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 480px) {
     .otp-card {
@@ -396,6 +449,11 @@
         font-size: 40vw;
         opacity: 0.5;
     }
+
+    .signup-card {
+        max-height: none;
+        margin: 0 auto 40px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -434,5 +492,18 @@
         width: 100%;
         /* Adjust padding box-sizing issues */
         box-sizing: border-box;
+    }
+
+    .signup-card {
+        padding: 28px 22px;
+    }
+
+    .signup-password-grid,
+    .grid-row {
+        grid-template-columns: 1fr;
+    }
+
+    .signup-link-row {
+        flex-direction: column;
     }
 }
