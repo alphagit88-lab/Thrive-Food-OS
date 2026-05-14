@@ -72,7 +72,7 @@ const DigitalKitchen: React.FC = () => {
             </div>
           </div>
           <div className="process-visual">
-            <img src="https://i.ibb.co/LkvS088/chicken-leg.png" alt="Precision Cooking" />
+            <img src="https://png.pngtree.com/png-vector/20230902/ourmid/pngtree-d-restaurant-kitchen-modern-industrial-kitchen-with-equipment-concept-3d-render-png-image_9827672.png" alt="Precision Cooking" />
           </div>
         </div>
       </section>
