@@ -29,6 +29,7 @@ import PricingMeals from './pages/product/PricingMeals';
 import PressMedia from './pages/company/PressMedia';
 import FAQs from './pages/support/FAQs';
 import TermsConditions from './pages/support/TermsConditions';
+import Community from './pages/Community';
 
 const LandingPage = () => (
   <>
@@ -53,6 +54,7 @@ const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/build" element={<MealBuilder />} />
           <Route path="/order" element={<OrderPage />} />
+          <Route path="/community" element={<Community />} />
 
           {/* Product Routes */}
           <Route path="/digital-kitchen" element={<DigitalKitchen />} />
