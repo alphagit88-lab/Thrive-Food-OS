@@ -66,11 +66,12 @@ const Header: React.FC = () => {
         <div className='header-nav'>
           <nav className="nav">
             <ul className="nav-links">
-              <li><Link to="/#menu">Menu</Link></li>
-              <li><Link to="/#drinks">Power Drinks</Link></li>
-              <li><Link to="/#community">Community</Link></li>
+              <li><Link to="/menu">Menu</Link></li>
+              <li><Link to="/powerDrinks">Power Drinks</Link></li>
+              <li><Link to="/community">Community</Link></li>
               <li><Link to="/#who">Who we are</Link></li>
               <li><Link to="/#franchise">Franchise</Link></li>
+              <li><Link to="/#profile">Profile</Link></li>
             </ul>
           </nav>
           <div className="header-auth">

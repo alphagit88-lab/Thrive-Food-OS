@@ -52,7 +52,7 @@ const SetMenus: React.FC = () => {
         {
             id: 1,
             tag: "MUSCLE GAIN",
-            image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?q=80&w=500&auto=format&fit=crop",
+            image: "https://img.magnific.com/free-psd/grilled-steak-with-lemon-tomatoes-arugula_632498-26088.jpg?semt=ais_hybrid&w=740&q=80",
             name: "Chicken with Thai Mango-Coconut Dip",
             description: "Fresh Atlantic salmon, seasoned with lemon and herbs, served over a bed of steamed asparagus.",
             ingredients: ["Salmon 200g", "Asparagus 150g", "Quinoa 100g", "Lemon Wedges"],
@@ -62,7 +62,7 @@ const SetMenus: React.FC = () => {
         {
             id: 2,
             tag: "WEIGHT LOSS",
-            image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500&auto=format&fit=crop",
+            image: "https://png.pngtree.com/png-clipart/20250427/original/pngtree-healthy-food-plate-with-fruits-and-vegetables-png-image_20850628.png",
             name: "Grilled Chicken & Avocado Bowl",
             description: "Lean chicken breast paired with healthy fats from avocado and fresh garden greens.",
             ingredients: ["Chicken 180g", "Avocado 0.5", "Mixed Greens", "Cherry Tomatoes"],
@@ -72,7 +72,7 @@ const SetMenus: React.FC = () => {
         {
             id: 3,
             tag: "ENERGY BOOST",
-            image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=500&auto=format&fit=crop",
+            image: "https://img.magnific.com/free-psd/roasted-chicken-dinner-platter-delicious-feast_632498-25445.jpg",
             name: "Mediterranean Power Bowl",
             description: "A nutrient-dense mix of chickpeas, hummus, and fresh vegetables for sustained energy.",
             ingredients: ["Chickpeas 150g", "Hummus 50g", "Cucumber", "Feta Cheese"],

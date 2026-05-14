@@ -1,0 +1,158 @@
+.how-it-works-page {
+  background-color: #000;
+  color: #fff;
+  padding-top: 100px;
+}
+
+.hiw-hero {
+  text-align: center;
+  padding: 60px 10%;
+}
+
+.hiw-subtitle {
+  color: #555;
+  letter-spacing: 5px;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.sakana-title {
+  font-family: 'Sakana', sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1;
+  margin: 20px 0;
+  color: #ffffff;
+}
+
+.hiw-lead {
+  color: #888;
+  max-width: 600px;
+  margin: 20px auto 0;
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+/* Steps Layout */
+.steps-container {
+  padding: 100px 15%;
+}
+
+.step-row {
+  display: flex;
+  align-items: center;
+  padding: 60px 0;
+  border-bottom: 1px solid #111;
+  transition: opacity 0.3s;
+}
+
+.step-row:hover {
+  opacity: 1;
+}
+
+.step-number-col {
+  flex: 0 0 150px;
+}
+
+.big-num {
+  font-family: 'Sakana', sans-serif;
+  font-size: 4rem;
+  color: #ffffff;
+  transition: color 0.3s;
+}
+
+.step-row:hover .big-num {
+  color: #b5ff00;
+}
+
+.step-content-col {
+  flex: 1;
+  padding: 0 40px;
+}
+
+.step-content-col h3 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+}
+
+.step-content-col p {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+.step-icon-col {
+  flex: 0 0 100px;
+}
+
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  background: #111;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border: 1px solid #222;
+}
+
+/* Tech Breakdown Section */
+.hiw-tech-breakdown {
+  padding: 100px 10%;
+  background: radial-gradient(circle at center, #111 0%, #000 70%);
+}
+
+.tech-card {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 60px;
+  border: 1px solid #222;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.tech-label {
+  color: #b5ff00;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 20px;
+}
+
+.tech-card h2 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #aaaaaa;
+}
+
+/* CTA Section */
+.hiw-cta {
+  padding: 150px 10%;
+  text-align: center;
+}
+
+.hiw-start-btn {
+  background: #b5ff00;
+  color: #000;
+  border: none;
+  padding: 20px 50px;
+  font-weight: 900;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 40px;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .step-row {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  .step-content-col {
+    padding: 0;
+  }
+}

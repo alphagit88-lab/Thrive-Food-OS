@@ -1,0 +1,259 @@
+.meal-share-container {
+    display: flex;
+    background: #000;
+    width: 900px;
+    max-width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Left Section */
+.meal-visual-section {
+    flex: 1;
+    background: #000;
+    padding: 40px 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: 1px solid #222;
+}
+
+.main-meal-img {
+    width: 280px;
+    height: 280px;
+    /* FIXED: border-radius creates the circular mask */
+    border-radius: 50%; 
+    /* FIXED: cover ensures the plate fills the circle without distortion */
+    object-fit: cover; 
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.5));
+    /* OPTIONAL: ensures no 'bleeding' of the background grid at the edges */
+    border: 2px solid #000; 
+}
+
+.interaction-row {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin: 30px 0;
+}
+
+.stat-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.icon {
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.count {
+    color: #666;
+    font-size: 14px;
+}
+
+.price-tag {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+}
+
+.build-similar-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-bottom: 40px;
+}
+
+.macro-footer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    border-top: 1px solid #222;
+    padding-top: 20px;
+}
+
+.macro-item {
+    text-align: center;
+}
+
+.macro-item strong {
+    display: block;
+    color: #b5ff00;
+    font-size: 1.2rem;
+}
+
+.macro-item span {
+    color: #555;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+/* Right Section */
+.meal-social-section {
+    flex: 1.1;
+    background: #1a1a1a;
+    padding: 30px;
+    text-align: start;
+}
+
+.user-header {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: #b5ff00;
+    color: #000;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+}
+
+.user-info h4 {
+    margin: 0;
+    color: #fff;
+}
+
+.user-info p {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.meal-title-quote {
+    font-style: italic;
+    color: #b5ff00;
+    font-size: 1.4rem;
+    margin-bottom: 25px;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 30px;
+}
+
+.ingredient-tag {
+    background: #2a2a2a;
+    color: #888;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid #333;
+    margin: 20px 0;
+}
+
+.comment-input-wrapper {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.mini-avatar {
+    width: 32px;
+    height: 32px;
+    background: #4d5d1a;
+    color: #b5ff00;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.input-box {
+    flex: 1;
+    background: #2a2a2a;
+    display: flex;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.input-box input {
+    background: transparent;
+    border: none;
+    flex: 1;
+    padding: 10px;
+    color: #fff;
+    outline: none;
+}
+
+.send-btn {
+    background: #b5ff00;
+    border: none;
+    border-radius: 4px;
+    width: 40px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.comment-item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 11px; /* Slightly larger for better readability */
+    font-weight: 700;
+    flex-shrink: 0; /* FIXED: Prevents the avatar from becoming an oval */
+    text-transform: uppercase;
+}
+
+/* Colors calibrated to Screenshot 2026-05-14 at 2.02.31 PM.jpg */
+.comment-avatar.blue {
+    background: #1e2a3a; /* Deeper navy-charcoal */
+    color: #58a6ff;      /* Bright performance blue */
+}
+
+.comment-avatar.orange {
+    background: #2d241a; /* Warm dark earth */
+    color: #e3b341;      /* Muted gold/orange */
+}
+
+.comment-body h5 {
+    margin: 0 0 5px 0;
+    color: #fff;
+}
+
+.comment-body p {
+    margin: 0;
+    color: #aaa;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.timestamp {
+    font-size: 11px;
+    color: #555;
+    display: block;
+    margin-top: 5px;
+}
