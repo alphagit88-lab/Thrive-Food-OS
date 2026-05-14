@@ -17,6 +17,18 @@ import MainLayout from './Layout/MainLayout';
 import SignUpPage from './pages/SignUpPage';
 import ChefLoginPage from './pages/ChefLoginPage';
 import ChefOrdersPage from './pages/ChefOrdersPage';
+import PrivacyPolicy from './pages/support/PrivacyPolicy';
+import HelpCenter from './pages/support/HelpCenter';
+import About from './pages/company/About';
+import Careers from './pages/company/Careers';
+import Contact from './pages/company/Contact';
+import DigitalKitchen from './pages/product/DigitalKitchen';
+import HowItWorks from './pages/product/HowItWorks';
+import Scheduling from './pages/product/Scheduling';
+import PricingMeals from './pages/product/PricingMeals';
+import PressMedia from './pages/company/PressMedia';
+import FAQs from './pages/support/FAQs';
+import TermsConditions from './pages/support/TermsConditions';
 
 const LandingPage = () => (
   <>
@@ -41,6 +53,24 @@ const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/build" element={<MealBuilder />} />
           <Route path="/order" element={<OrderPage />} />
+
+          {/* Product Routes */}
+          <Route path="/digital-kitchen" element={<DigitalKitchen />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/pricingMeals" element={<PricingMeals />} />
+          <Route path="/scheduling" element={<Scheduling />} />
+
+          {/* Company Routes */}
+          <Route path="/about" element={<About />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/pressMedia" element={<PressMedia />} />
+
+          {/* Support Routes */}
+          <Route path="/help" element={<HelpCenter />} />
+          <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
+          <Route path="/faqs" element={<FAQs />} />
+          <Route path="/termsConditions" element={<TermsConditions />} />
         </Route>
         {/* --- ROUTES WITHOUT HEADER/FOOTER --- */}
         <Route path="/login" element={<LoginPage />} />

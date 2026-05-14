@@ -1,5 +1,6 @@
 import React from 'react';
 import './Footer.css';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
     return (
@@ -13,40 +14,40 @@ const Footer: React.FC = () => {
                     <div className="link-group">
                         <h5>PRODUCT LINKS</h5>
                         <ul>
-                            <li><a href="#">Digital Kitchen</a></li>
-                            <li><a href="#">How It Works</a></li>
-                            <li><a href="#">Pricing / Meals</a></li>
-                            <li><a href="#">Scheduling</a></li>
+                            <li><Link to="/digital-kitchen">Digital Kitchen</Link></li>
+                            <li><Link to="/how-it-works">How It Works</Link></li>
+                            <li><Link to="/pricingMeals">Pricing / Meals</Link></li>
+                            <li><Link to="/scheduling">Scheduling</Link></li>
                         </ul>
                     </div>
 
                     <div className="link-group">
                         <h5>COMPANY</h5>
                         <ul>
-                            <li><a href="#">About THRYV</a></li>
-                            <li><a href="#">Careers</a></li>
-                            <li><a href="#">Contact</a></li>
-                            <li><a href="#">Press / Media</a></li>
+                            <li><Link to="/about">About THRYV</Link></li>
+                            <li><Link to="/careers">Careers</Link></li>
+                            <li><Link to="/contact">Contact</Link></li>
+                            <li><Link to="/pressMedia">Press / Media</Link></li>
                         </ul>
                     </div>
 
                     <div className="link-group">
                         <h5>SUPPORT</h5>
                         <ul>
-                            <li><a href="#">Help Center</a></li>
-                            <li><a href="#">FAQs</a></li>
-                            <li><a href="#">Terms & Conditions</a></li>
-                            <li><a href="#">Privacy Policy</a></li>
+                            <li><Link to="/help">Help Center</Link></li>
+                            <li><Link to="/faqs">FAQs</Link></li>
+                            <li><Link to="/termsConditions">Terms & Conditions</Link></li>
+                            <li><Link to="/privacyPolicy">Privacy Policy</Link></li>
                         </ul>
                     </div>
 
                     <div className="link-group">
                         <h5>SOCIAL</h5>
                         <ul>
-                            <li><a href="#">Instagram</a></li>
-                            <li><a href="#">TikTok</a></li>
-                            <li><a href="#">Facebook</a></li>
-                            <li><a href="#">YouTube</a></li>
+                            <li><a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></li>
+                            <li><a href="https://tiktok.com" target="_blank" rel="noreferrer">TikTok</a></li>
+                            <li><a href="https://facebook.com" target="_blank" rel="noreferrer">Facebook</a></li>
+                            <li><a href="https://youtube.com" target="_blank" rel="noreferrer">YouTube</a></li>
                         </ul>
                     </div>
                 </div>
