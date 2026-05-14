@@ -146,14 +146,14 @@
 .tags-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 30px;
 }
 
 .ingredient-tag {
     background: #2a2a2a;
     color: #888;
-    padding: 8px 16px;
+    padding: 4px 10px;
     border-radius: 20px;
     font-size: 12px;
 }
