@@ -677,6 +677,8 @@
 
 .location-modal {
     width: min(560px, 100%);
+    box-sizing: border-box;
+    overflow: hidden;
     background: #1a1a1a;
     border: 1px solid #303030;
     border-radius: 18px;
@@ -729,13 +731,19 @@
 
 .location-modal-fields {
     display: grid;
+    width: 100%;
+    max-width: 100%;
     gap: 16px;
+    min-width: 0;
 }
 
 .location-modal-field {
     display: grid;
+    width: 100%;
+    max-width: 100%;
     gap: 8px;
     text-align: left;
+    min-width: 0;
 }
 
 .location-modal-field span {
@@ -747,7 +755,11 @@
 .location-modal-field input,
 .location-modal-field select,
 .location-modal-field textarea {
+    display: block;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     border: 1px solid #353535;
     border-radius: 12px;
     background: #101010;
