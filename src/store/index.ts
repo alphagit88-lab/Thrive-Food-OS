@@ -15,6 +15,7 @@ store.subscribe(() => {
     selectedLocationId: state.mealBuilder.selectedLocationId,
     plateItems: state.mealBuilder.plateItems,
     selectedDelivery: state.mealBuilder.selectedDelivery,
+    selectedScheduleWindowId: state.mealBuilder.selectedScheduleWindowId,
     mealName: state.mealBuilder.mealName,
     checkoutDraft: state.mealBuilder.checkoutDraft,
     placedOrder: state.mealBuilder.placedOrder,

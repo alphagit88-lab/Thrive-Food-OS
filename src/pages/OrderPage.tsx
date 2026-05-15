@@ -3,14 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import './OrderPage.css';
 import { MdOutlineLocationOn } from 'react-icons/md';
 import mealImage from '../assets/food-plate.png';
+import { formatScheduledDeliveryWindow } from '../constants/deliveryWindows';
+import { getFoodOsLocations } from '../services/mealBuilderService';
 import { buildFoodOsOrderNote, createFoodOsOrder, normalizeChefOrder } from '../services/orderService';
 import { createOrderRealtimeClient, getOrderChannelName } from '../services/realtimeService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { completeOrder, startNewMeal, syncPlacedOrder } from '../store/slices/mealBuilderSlice';
-import type { ChefOrder, CustomerOrderDraft, PlateItem } from '../types/types';
+import {
+  completeOrder,
+  setCheckoutDraft,
+  startNewMeal,
+  syncCheckoutLocation,
+  syncPlacedOrder,
+} from '../store/slices/mealBuilderSlice';
+import type { ChefOrder, CustomerOrderDraft, PlateItem, ThriveLocation } from '../types/types';
 import {
   ORDER_STATUS_SYNC_EVENT,
   ORDER_STATUS_SYNC_STORAGE_KEY,
+  getCustomerSessionIdentity,
   readCustomerSession,
   readSyncedChefOrder,
 } from '../utils/storage';
@@ -18,6 +27,9 @@ import { formatCustomerOrderStatusLabel, getCustomerOrderStatusCopy } from '../u
 
 const DELIVERY_FEE = 150;
 const SERVICE_CHARGE_RATE = 0.05;
+const CUSTOMER_ORDER_AUTH_ERROR = 'user not found or inactive';
+const CUSTOMER_ORDER_AUTH_ERROR_COPY =
+  'We could not place this order because the kitchen service could not validate your customer account. Your meal is still saved here while the backend customer-order fix is applied.';
 
 const formatPrice = (amount: number, currency = 'LKR') =>
   `${currency} ${new Intl.NumberFormat('en-LK', { maximumFractionDigits: 0 }).format(amount)}`;
@@ -30,11 +42,64 @@ const formatMacroValue = (value: number) => {
 const getDisplayTags = (item: PlateItem) =>
   [item.variant, item.specification, item.cook_style, item.quantity_label].filter(Boolean);
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof error.response === 'object' &&
+    error.response !== null &&
+    'data' in error.response &&
+    typeof error.response.data === 'object' &&
+    error.response.data !== null
+  ) {
+    const data = error.response.data as { error?: string; message?: string };
+    return data.error || data.message || fallback;
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+};
+
+const deriveDeliveryLabel = (label: string, address: string, fallback: string) => {
+  const normalizedLabel = label.trim();
+  if (normalizedLabel) {
+    return normalizedLabel;
+  }
+
+  const firstAddressSegment = address
+    .split(',')
+    .map((segment) => segment.trim())
+    .find(Boolean);
+
+  return firstAddressSegment || fallback;
+};
+
+const getOrderSubmissionErrorMessage = (error: unknown) => {
+  const message = getErrorMessage(error, 'Failed to place order. Please try again.');
+
+  if (message.trim().toLowerCase() === CUSTOMER_ORDER_AUTH_ERROR) {
+    return CUSTOMER_ORDER_AUTH_ERROR_COPY;
+  }
+
+  return message;
+};
+
 const OrderPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState('');
+  const [isLocationModalOpen, setLocationModalOpen] = useState(false);
+  const [locationOptions, setLocationOptions] = useState<ThriveLocation[]>([]);
+  const [isLoadingLocationOptions, setIsLoadingLocationOptions] = useState(false);
+  const [locationOptionsError, setLocationOptionsError] = useState('');
+  const [editableLocationId, setEditableLocationId] = useState('');
+  const [editableDeliveryLabel, setEditableDeliveryLabel] = useState('');
+  const [editableDeliveryAddress, setEditableDeliveryAddress] = useState('');
   const draft = useAppSelector((state) => state.mealBuilder.checkoutDraft) as CustomerOrderDraft | null;
   const placedOrder = useAppSelector((state) => state.mealBuilder.placedOrder);
   const activeDraft = draft || placedOrder?.metadata || null;
@@ -125,16 +190,99 @@ const OrderPage: React.FC = () => {
     };
   }, [dispatch, placedOrder?.id, placedOrder?.metadata?.realtime_token]);
 
+  useEffect(() => {
+    if (!isLocationModalOpen) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadLocations = async () => {
+      setIsLoadingLocationOptions(true);
+      setLocationOptionsError('');
+
+      try {
+        const nextLocations = await getFoodOsLocations();
+        if (!isMounted) {
+          return;
+        }
+
+        setLocationOptions(nextLocations);
+      } catch (locationError) {
+        if (!isMounted) {
+          return;
+        }
+
+        setLocationOptionsError(getErrorMessage(locationError, 'Unable to load kitchen locations right now.'));
+        setLocationOptions([]);
+      } finally {
+        if (isMounted) {
+          setIsLoadingLocationOptions(false);
+        }
+      }
+    };
+
+    void loadLocations();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLocationModalOpen]);
+
+  const handleOpenLocationModal = () => {
+    if (!draft || placedOrder) {
+      return;
+    }
+
+    setEditableLocationId(draft.location_id);
+    setEditableDeliveryLabel(
+      draft.delivery_label && draft.delivery_label !== draft.location_name ? draft.delivery_label : '',
+    );
+    setEditableDeliveryAddress(draft.delivery_address || '');
+    setLocationOptionsError('');
+    setLocationModalOpen(true);
+  };
+
+  const handleSaveLocationChanges = () => {
+    if (!draft) {
+      return;
+    }
+
+    const selectedLocation = locationOptions.find((location) => location.id === editableLocationId);
+    const nextLocationId = selectedLocation?.id || editableLocationId || draft.location_id;
+    const nextLocationName = selectedLocation?.name || draft.location_name;
+    const nextDeliveryAddress = editableDeliveryAddress.trim();
+    const nextDeliveryLabel = deriveDeliveryLabel(
+      editableDeliveryLabel,
+      nextDeliveryAddress,
+      nextLocationName,
+    );
+
+    dispatch(
+      setCheckoutDraft({
+        ...draft,
+        location_id: nextLocationId,
+        location_name: nextLocationName,
+        delivery_label: nextDeliveryLabel,
+        delivery_address: nextDeliveryAddress || null,
+      }),
+    );
+    dispatch(syncCheckoutLocation(nextLocationId));
+    setLocationModalOpen(false);
+  };
+
   const handlePlaceOrder = async () => {
     if (!draft || placingOrder) {
       return;
     }
 
     const customerSession = readCustomerSession();
-    if (!customerSession?.token || !customerSession.user?.id) {
+    if (!customerSession?.token) {
       navigate('/login?redirect=%2Forder');
       return;
     }
+
+    const customerId = getCustomerSessionIdentity(customerSession);
 
     setPlacingOrder(true);
     setError('');
@@ -147,7 +295,7 @@ const OrderPage: React.FC = () => {
 
       const createdOrder = await createFoodOsOrder({
         location_id: draft.location_id,
-        customer_id: customerSession?.user?.id,
+        customer_id: customerId || undefined,
         notes: buildFoodOsOrderNote(nextDraft),
         items: draft.plate_items.map((item) => ({
           quantity: 1,
@@ -156,13 +304,11 @@ const OrderPage: React.FC = () => {
             .filter(Boolean)
             .join(' | '),
         })),
-      });
+      }, customerSession.token);
 
       dispatch(completeOrder(createdOrder));
     } catch (submitError) {
-      const message =
-        submitError instanceof Error ? submitError.message : 'Failed to place order. Please try again.';
-      setError(message);
+      setError(getOrderSubmissionErrorMessage(submitError));
     } finally {
       setPlacingOrder(false);
     }
@@ -186,6 +332,28 @@ const OrderPage: React.FC = () => {
 
   const plateItems = activeDraft?.plate_items || [];
   const currency = plateItems[0]?.currency || 'LKR';
+  const scheduledDeliveryWindow = formatScheduledDeliveryWindow(activeDraft?.scheduled_window_id || null);
+  const deliveryTimingCopy =
+    activeDraft?.delivery_type === 'schedule' ? scheduledDeliveryWindow : 'Estimated 45 minutes';
+  const deliveryDescription =
+    activeDraft?.delivery_type === 'schedule'
+      ? `Delivery window: ${scheduledDeliveryWindow}. Your meal will be prepared at the selected kitchen location.`
+      : 'Live order will be prepared for the selected kitchen location.';
+  const kitchenLocationName = activeDraft?.location_name || 'Thrive Kitchen';
+  const savedDeliveryLabel = activeDraft?.delivery_label?.trim() || '';
+  const savedDeliveryAddress = activeDraft?.delivery_address?.trim() || '';
+  const hasCustomDeliveryDestination =
+    Boolean(savedDeliveryAddress) || Boolean(savedDeliveryLabel && savedDeliveryLabel !== kitchenLocationName);
+  const deliveryCardTitle = savedDeliveryLabel || kitchenLocationName;
+  const deliveryTimingPrefix =
+    activeDraft?.delivery_type === 'schedule'
+      ? `Delivery window: ${scheduledDeliveryWindow}. `
+      : 'Live order delivery. ';
+  const deliveryCardCopy = hasCustomDeliveryDestination
+    ? `${deliveryTimingPrefix}Delivering to ${savedDeliveryAddress || savedDeliveryLabel}. Prepared by ${kitchenLocationName}.`
+    : deliveryDescription;
+  const canEditLocation = Boolean(draft) && !placedOrder;
+  const locationExistsInOptions = locationOptions.some((location) => location.id === editableLocationId);
 
   return (
     <div className="order-container">
@@ -195,9 +363,7 @@ const OrderPage: React.FC = () => {
           <div className="toggle-options">
             <div className="toggle-btn active">
               <p className="main-text">Deliver to Me</p>
-              <p className="sub-text">
-                {activeDraft?.delivery_type === 'schedule' ? 'Scheduled delivery' : 'Estimated 45 minutes'}
-              </p>
+              <p className="sub-text">{deliveryTimingCopy}</p>
               <p className="popular-badge">Live Order</p>
             </div>
             <div className="toggle-btn">
@@ -211,10 +377,10 @@ const OrderPage: React.FC = () => {
             </div>
 
             <div className="address-text">
-              <strong>{activeDraft?.location_name || 'Thrive Kitchen'}</strong>
-              <p>Live order will be prepared for the selected kitchen location.</p>
+              <strong>{deliveryCardTitle}</strong>
+              <p>{deliveryCardCopy}</p>
             </div>
-            <button className="change-link" onClick={() => navigate('/build')}>
+            <button className="change-link" type="button" onClick={handleOpenLocationModal} disabled={!canEditLocation}>
               Edit
             </button>
           </div>
@@ -350,6 +516,88 @@ const OrderPage: React.FC = () => {
           <img src={mealImage} alt="Meal" className="meal-img" />
         </div>
       </div>
+
+      {isLocationModalOpen && draft ? (
+        <div className="location-modal-overlay" onClick={() => setLocationModalOpen(false)}>
+          <div
+            className="location-modal"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            <div className="location-modal-header">
+              <div>
+                <span className="location-modal-label">Edit delivery location</span>
+                <h3>Update where this order should go</h3>
+              </div>
+              <button
+                type="button"
+                className="location-modal-close"
+                onClick={() => setLocationModalOpen(false)}
+                aria-label="Close location editor"
+              >
+                &times;
+              </button>
+            </div>
+
+            <p className="location-modal-copy">
+              Keep the kitchen synced for fulfillment, then add a delivery area or full address for this checkout.
+            </p>
+
+            <div className="location-modal-fields">
+              <label className="location-modal-field">
+                <span>Kitchen location</span>
+                <select
+                  value={editableLocationId}
+                  onChange={(event) => setEditableLocationId(event.target.value)}
+                  disabled={isLoadingLocationOptions}
+                >
+                  {editableLocationId && !locationExistsInOptions ? (
+                    <option value={editableLocationId}>{draft.location_name}</option>
+                  ) : null}
+                  {locationOptions.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="location-modal-field">
+                <span>Delivery location label</span>
+                <input
+                  type="text"
+                  value={editableDeliveryLabel}
+                  onChange={(event) => setEditableDeliveryLabel(event.target.value)}
+                  placeholder="Colombo 7, Office, Gym, Home"
+                />
+              </label>
+
+              <label className="location-modal-field">
+                <span>Address details</span>
+                <textarea
+                  value={editableDeliveryAddress}
+                  onChange={(event) => setEditableDeliveryAddress(event.target.value)}
+                  placeholder="Apartment, street, landmark, or any delivery notes"
+                  rows={4}
+                />
+              </label>
+            </div>
+
+            {isLoadingLocationOptions ? <div className="location-modal-feedback">Loading kitchen locations...</div> : null}
+            {locationOptionsError ? <div className="location-modal-feedback error">{locationOptionsError}</div> : null}
+
+            <div className="location-modal-actions">
+              <button type="button" className="location-modal-secondary" onClick={() => setLocationModalOpen(false)}>
+                Cancel
+              </button>
+              <button type="button" className="location-modal-primary" onClick={handleSaveLocationChanges}>
+                Save location
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

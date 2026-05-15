@@ -1,16 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import IngredientModal from '../modals/IngredientModal';
 import foodPlate from '../assets/food-plate.png';
+import { getScheduledDeliveryWindow, SCHEDULED_DELIVERY_WINDOWS } from '../constants/deliveryWindows';
 import { getFoodOsIngredients, getFoodOsLocations } from '../services/mealBuilderService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   addPlateItem,
+  resetCurrentBuild,
   removePlateItem,
   selectLocation,
   setCheckoutDraft,
   setMealName,
   setSelectedDelivery,
+  setSelectedScheduleWindow,
 } from '../store/slices/mealBuilderSlice';
 import { createEmptyMacros, getPlateItemMacros } from '../utils/nutrition';
 import type {
@@ -118,6 +121,7 @@ const formatIngredientKcalPer100g = (ingredient: ThriveIngredient) => {
 
 const MealBuilder: React.FC = () => {
   const dispatch = useAppDispatch();
+  const location = useLocation();
   const navigate = useNavigate();
   const catalogCacheRef = useRef<Record<string, ThriveIngredientsResponse>>({});
   const checkoutTimeoutRef = useRef<number | null>(null);
@@ -134,7 +138,19 @@ const MealBuilder: React.FC = () => {
   const selectedLocationId = useAppSelector((state) => state.mealBuilder.selectedLocationId);
   const plateItems = useAppSelector((state) => state.mealBuilder.plateItems);
   const selectedDelivery = useAppSelector((state) => state.mealBuilder.selectedDelivery);
+  const selectedScheduleWindowId = useAppSelector((state) => state.mealBuilder.selectedScheduleWindowId);
   const mealName = useAppSelector((state) => state.mealBuilder.mealName);
+  const shouldPreserveExistingBuild =
+    typeof location.state === 'object' &&
+    location.state !== null &&
+    'preserveMealBuilder' in location.state &&
+    location.state.preserveMealBuilder === true;
+
+  useLayoutEffect(() => {
+    if (!shouldPreserveExistingBuild) {
+      dispatch(resetCurrentBuild());
+    }
+  }, [dispatch, shouldPreserveExistingBuild]);
 
   useEffect(() => {
     let isMounted = true;
@@ -286,6 +302,10 @@ const MealBuilder: React.FC = () => {
   const totalPrice = plateItems.reduce((sum, item) => sum + item.price, 0);
   const plateCurrency = currentLocation?.currency || plateItems[0]?.currency || 'LKR';
   const hasCheckoutMinimum = plateItems.length >= MIN_CHECKOUT_ITEMS;
+  const selectedScheduleWindow = getScheduledDeliveryWindow(selectedScheduleWindowId);
+  const requiresScheduledWindow = selectedDelivery === 'schedule';
+  const canProceedToCheckout =
+    hasCheckoutMinimum && Boolean(currentLocation) && !isCheckoutLoading && (!requiresScheduledWindow || !!selectedScheduleWindow);
   const totalMacros = plateItems.reduce((totals, item) => {
     totals.protein += item.macros.protein || 0;
     totals.carbs += item.macros.carbs || 0;
@@ -340,7 +360,7 @@ const MealBuilder: React.FC = () => {
   };
 
   const handleProceedToCheckout = () => {
-    if (!hasCheckoutMinimum || isCheckoutLoading || !currentLocation) {
+    if (!canProceedToCheckout || !currentLocation) {
       return;
     }
 
@@ -350,6 +370,7 @@ const MealBuilder: React.FC = () => {
       location_name: currentLocation.name,
       total_price: totalPrice,
       delivery_type: selectedDelivery,
+      scheduled_window_id: selectedDelivery === 'schedule' ? selectedScheduleWindow?.id || null : null,
       plate_items: plateItems,
       created_at: new Date().toISOString(),
     };
@@ -361,7 +382,7 @@ const MealBuilder: React.FC = () => {
       const customerSession = readCustomerSession();
 
       setIsCheckoutLoading(false);
-      navigate(customerSession ? '/order' : '/signUp?redirect=%2Forder');
+      navigate(customerSession?.token ? '/order' : '/signUp?redirect=%2Forder');
     }, 300);
   };
 
@@ -369,9 +390,20 @@ const MealBuilder: React.FC = () => {
     ? 'LOADING INGREDIENTS FROM THRIVE_BACKEND'
     : isCheckoutLoading
       ? 'OPENING CHECKOUT...'
-    : hasCheckoutMinimum
-      ? 'READY FOR CHECKOUT. ADD OR REMOVE ITEMS ANYTIME'
-      : 'DRAG INGREDIENTS TO YOUR PLATE';
+      : requiresScheduledWindow && !selectedScheduleWindow
+        ? 'SELECT A DELIVERY WINDOW TO CONTINUE'
+        : hasCheckoutMinimum
+          ? 'READY FOR CHECKOUT. ADD OR REMOVE ITEMS ANYTIME'
+          : 'DRAG INGREDIENTS TO YOUR PLATE';
+  const checkoutButtonLabel = isCheckoutLoading
+    ? 'Loading...'
+    : !hasCheckoutMinimum
+      ? `Add ${Math.max(0, MIN_CHECKOUT_ITEMS - plateItems.length)} More item${
+          MIN_CHECKOUT_ITEMS - plateItems.length === 1 ? '' : 's'
+        } to Order`
+      : requiresScheduledWindow && !selectedScheduleWindow
+        ? 'Select a delivery time to continue'
+        : 'Complete - Proceed to Checkout';
 
   return (
     <div>
@@ -629,6 +661,7 @@ const MealBuilder: React.FC = () => {
             <div className="delivery-buttons">
               <button
                 className={`delivery-btn order-now-btn ${selectedDelivery === 'now' ? 'active' : ''}`}
+                type="button"
                 onClick={() => dispatch(setSelectedDelivery('now'))}
               >
                 <div className="opt-text">
@@ -640,29 +673,48 @@ const MealBuilder: React.FC = () => {
 
               <button
                 className={`delivery-btn ${selectedDelivery === 'schedule' ? 'active' : ''}`}
+                type="button"
                 onClick={() => dispatch(setSelectedDelivery('schedule'))}
               >
                 <div className="opt-text">
                   <strong>Schedule</strong>
-                  <span>Pick a time</span>
+                  <span>{selectedScheduleWindow?.timeRange || 'Pick a time'}</span>
                 </div>
                 {selectedDelivery === 'schedule' && <div className="check-circle">&#10003;</div>}
               </button>
             </div>
+
+            {selectedDelivery === 'schedule' ? (
+              <div className="schedule-window-picker">
+                <span className="schedule-window-picker-label">Choose your delivery window</span>
+                <div className="schedule-window-list">
+                  {SCHEDULED_DELIVERY_WINDOWS.map((scheduledWindow) => (
+                    <button
+                      key={scheduledWindow.id}
+                      type="button"
+                      className={`schedule-window-btn ${
+                        selectedScheduleWindow?.id === scheduledWindow.id ? 'active' : ''
+                      }`}
+                      onClick={() => dispatch(setSelectedScheduleWindow(scheduledWindow.id))}
+                    >
+                      <div className="schedule-window-copy">
+                        <strong>{scheduledWindow.label}</strong>
+                        <span>{scheduledWindow.timeRange}</span>
+                      </div>
+                      <span className="schedule-window-state" aria-hidden="true" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <button
             className="add-more-btn"
-            disabled={!hasCheckoutMinimum || isCheckoutLoading}
+            disabled={!canProceedToCheckout}
             onClick={handleProceedToCheckout}
           >
-            {isCheckoutLoading
-              ? 'Loading...'
-              : hasCheckoutMinimum
-                ? 'Complete - Proceed to Checkout'
-              : `Add ${Math.max(0, MIN_CHECKOUT_ITEMS - plateItems.length)} More item${
-                  MIN_CHECKOUT_ITEMS - plateItems.length === 1 ? '' : 's'
-                } to Order`}
+            {checkoutButtonLabel}
           </button>
         </aside>
       </div>

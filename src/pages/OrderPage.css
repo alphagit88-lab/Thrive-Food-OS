@@ -193,6 +193,11 @@
     border-color: #3B4A16;
 }
 
+.change-link:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
 .popular-badge {
     background: var(--lime-green);
     color: #303030;
@@ -659,6 +664,177 @@
     margin-right: auto;
 }
 
+.location-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 3, 3, 0.76);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+}
+
+.location-modal {
+    width: min(560px, 100%);
+    background: #1a1a1a;
+    border: 1px solid #303030;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.location-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.location-modal-label {
+    display: block;
+    color: #8A8888;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+}
+
+.location-modal-header h3 {
+    margin: 0;
+    font-size: 24px;
+    text-align: left;
+}
+
+.location-modal-close {
+    border: 1px solid #3a3a3a;
+    background: #252525;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.location-modal-copy {
+    margin: 0 0 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.location-modal-fields {
+    display: grid;
+    gap: 16px;
+}
+
+.location-modal-field {
+    display: grid;
+    gap: 8px;
+    text-align: left;
+}
+
+.location-modal-field span {
+    color: #f2f2f2;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.location-modal-field input,
+.location-modal-field select,
+.location-modal-field textarea {
+    width: 100%;
+    border: 1px solid #353535;
+    border-radius: 12px;
+    background: #101010;
+    color: #fff;
+    font: inherit;
+    padding: 12px 14px;
+    outline: none;
+}
+
+.location-modal-field textarea {
+    resize: vertical;
+}
+
+.location-modal-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 44px;
+    line-height: 1.2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23F0F2ED' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px 8px;
+    cursor: pointer;
+}
+
+.location-modal-field input:focus,
+.location-modal-field select:focus,
+.location-modal-field textarea:focus {
+    border-color: #5b7420;
+    box-shadow: 0 0 0 1px #5b7420;
+}
+
+.location-modal-feedback {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #202020;
+    border: 1px solid #303030;
+    color: #d6d6d6;
+    font-size: 12px;
+    text-align: left;
+}
+
+.location-modal-feedback.error {
+    border-color: rgba(255, 92, 92, 0.35);
+    background: rgba(90, 22, 22, 0.35);
+    color: #ffc3c3;
+}
+
+.location-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.location-modal-secondary,
+.location-modal-primary {
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.location-modal-secondary {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #4a4a4a;
+}
+
+.location-modal-secondary:hover {
+    background: #262626;
+}
+
+.location-modal-primary {
+    background: var(--lime-green);
+    color: #101010;
+    border: 1px solid var(--lime-green);
+}
+
+.location-modal-primary:hover {
+    background: #c0ff2a;
+    border-color: #c0ff2a;
+}
+
 @media (max-width: 1100px) {
     .order-container {
         flex-direction: column;
@@ -668,6 +844,25 @@
     .sidebar,
     .plate-sidebar,
     .main-summary {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .location-modal {
+        padding: 20px;
+    }
+
+    .location-modal-header h3 {
+        font-size: 20px;
+    }
+
+    .location-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .location-modal-secondary,
+    .location-modal-primary {
         width: 100%;
     }
 }
