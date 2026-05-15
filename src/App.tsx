@@ -32,6 +32,7 @@ import TermsConditions from './pages/support/TermsConditions';
 import Community from './pages/Community';
 import Menu from './pages/Menu';
 import PowerDrinksPage from './pages/PowerDrinks';
+import ProfilePage from './pages/ProfilePage';
 
 const LandingPage = () => (
   <>
@@ -59,6 +60,7 @@ const App: React.FC = () => {
           <Route path="/community" element={<Community />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/powerDrinks" element={<PowerDrinksPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
 
           {/* Product Routes */}
           <Route path="/digital-kitchen" element={<DigitalKitchen />} />

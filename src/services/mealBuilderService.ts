@@ -1,4 +1,4 @@
-import API, { resolveApiAssetUrl } from './apiClient';
+import { requestWithHostedCatalogFallback, resolveApiAssetUrl } from './apiClient';
 import type {
   ThriveIngredient,
   ThriveIngredientCategory,
@@ -24,9 +24,9 @@ const IMAGE_COLLECTION_KEYS = ['photos', 'images', 'gallery'] as const;
 const isRecord = (value: unknown): value is ApiRecord =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const resolveImageValue = (value: unknown): string | null => {
+const resolveImageValue = (value: unknown, apiOrigin?: string): string | null => {
   if (typeof value === 'string' && value.trim()) {
-    return resolveApiAssetUrl(value) || value;
+    return resolveApiAssetUrl(value, apiOrigin) || value;
   }
 
   if (!isRecord(value)) {
@@ -34,7 +34,7 @@ const resolveImageValue = (value: unknown): string | null => {
   }
 
   for (const key of IMAGE_FIELD_KEYS) {
-    const matchedValue = resolveImageValue(value[key]);
+    const matchedValue = resolveImageValue(value[key], apiOrigin);
     if (matchedValue) {
       return matchedValue;
     }
@@ -43,13 +43,13 @@ const resolveImageValue = (value: unknown): string | null => {
   return null;
 };
 
-const resolveImageCollection = (value: unknown): string | null => {
+const resolveImageCollection = (value: unknown, apiOrigin?: string): string | null => {
   if (!Array.isArray(value)) {
     return null;
   }
 
   for (const entry of value) {
-    const matchedValue = resolveImageValue(entry);
+    const matchedValue = resolveImageValue(entry, apiOrigin);
     if (matchedValue) {
       return matchedValue;
     }
@@ -58,18 +58,18 @@ const resolveImageCollection = (value: unknown): string | null => {
   return null;
 };
 
-const resolveIngredientImage = (ingredient: ThriveIngredient) => {
+const resolveIngredientImage = (ingredient: ThriveIngredient, apiOrigin?: string) => {
   const ingredientRecord = ingredient as ThriveIngredient & ApiRecord;
 
   for (const key of IMAGE_FIELD_KEYS) {
-    const matchedValue = resolveImageValue(ingredientRecord[key]);
+    const matchedValue = resolveImageValue(ingredientRecord[key], apiOrigin);
     if (matchedValue) {
       return matchedValue;
     }
   }
 
   for (const key of IMAGE_COLLECTION_KEYS) {
-    const matchedValue = resolveImageCollection(ingredientRecord[key]);
+    const matchedValue = resolveImageCollection(ingredientRecord[key], apiOrigin);
     if (matchedValue) {
       return matchedValue;
     }
@@ -81,10 +81,11 @@ const resolveIngredientImage = (ingredient: ThriveIngredient) => {
 const hydrateIngredient = (
   ingredient: ThriveIngredient,
   category: ThriveIngredientCategory,
+  apiOrigin?: string,
 ): ThriveIngredient => {
   const photos = (ingredient.photos || []).map((photo) => ({
     ...photo,
-    photo_url: resolveApiAssetUrl(photo.photo_url) || photo.photo_url,
+    photo_url: resolveApiAssetUrl(photo.photo_url, apiOrigin) || photo.photo_url,
   }));
 
   const hydratedIngredient: ThriveIngredient = {
@@ -102,17 +103,30 @@ const hydrateIngredient = (
 
   return {
     ...hydratedIngredient,
-    photo_url: resolveIngredientImage(hydratedIngredient),
+    photo_url: resolveIngredientImage(
+      {
+        ...hydratedIngredient,
+        photo_url:
+          resolveApiAssetUrl(hydratedIngredient.photo_url, apiOrigin) || hydratedIngredient.photo_url,
+        photos,
+      },
+      apiOrigin,
+    ),
   };
 };
 
 export const getFoodOsLocations = async () => {
-  const response = await API.get<ThriveLocationsResponse>('/integrations/thrive-food-os/locations');
+  const { response } = await requestWithHostedCatalogFallback<ThriveLocationsResponse>({
+    method: 'get',
+    url: '/integrations/thrive-food-os/locations',
+  });
   return response.data.data;
 };
 
 export const getFoodOsIngredients = async (locationId: string) => {
-  const response = await API.get<ThriveIngredientsResponse>('/integrations/thrive-food-os/ingredients', {
+  const { response, apiOrigin } = await requestWithHostedCatalogFallback<ThriveIngredientsResponse>({
+    method: 'get',
+    url: '/integrations/thrive-food-os/ingredients',
     params: { location_id: locationId },
     headers: { 'X-Location-Id': locationId },
   });
@@ -121,7 +135,9 @@ export const getFoodOsIngredients = async (locationId: string) => {
     ...response.data,
     data: (response.data.data || []).map((category) => ({
       ...category,
-      ingredients: (category.ingredients || []).map((ingredient) => hydrateIngredient(ingredient, category)),
+      ingredients: (category.ingredients || []).map((ingredient) =>
+        hydrateIngredient(ingredient, category, apiOrigin),
+      ),
     })),
   };
 };
