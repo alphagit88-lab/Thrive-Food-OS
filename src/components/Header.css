@@ -31,6 +31,7 @@
 .nav-links {
   display: flex;
   gap: 30px;
+  align-items: center;
 }
 
 .nav-links a {
@@ -85,16 +86,6 @@
 }
 
 .auth-login-btn:hover {
-  background-color: #b5ff00;
-  color: #121212;
-}
-
-.auth-logout-btn {
-  border-color: #3B4A16;
-  color: #b5ff00;
-}
-
-.auth-logout-btn:hover {
   background-color: #b5ff00;
   color: #121212;
 }

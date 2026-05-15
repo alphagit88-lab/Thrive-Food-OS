@@ -161,12 +161,19 @@ export interface PlateItem {
   macros: PlateItemMacros;
 }
 
+export type DeliveryType = 'now' | 'schedule';
+
+export type ScheduledDeliveryWindowId = 'morning-prime' | 'peak-performance' | 'recovery-window';
+
 export interface CustomerOrderDraft {
   meal_name: string;
   location_id: string;
   location_name: string;
+  delivery_label?: string | null;
+  delivery_address?: string | null;
   total_price: number;
-  delivery_type: 'now' | 'schedule';
+  delivery_type: DeliveryType;
+  scheduled_window_id?: ScheduledDeliveryWindowId | null;
   plate_items: PlateItem[];
   created_at: string;
 }
@@ -174,8 +181,11 @@ export interface CustomerOrderDraft {
 export interface FoodOsOrderMetadata {
   source: 'thrive-food-os';
   meal_name: string;
-  delivery_type: 'now' | 'schedule';
+  delivery_type: DeliveryType;
+  scheduled_window_id?: ScheduledDeliveryWindowId | null;
   location_name: string;
+  delivery_label?: string | null;
+  delivery_address?: string | null;
   total_price: number;
   created_at: string;
   realtime_token?: string;

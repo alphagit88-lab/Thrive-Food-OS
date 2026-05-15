@@ -1,0 +1,206 @@
+.pricing-page {
+  background-color: #000;
+  color: #fff;
+  padding: 120px 0 80px;
+}
+
+.pricing-hero {
+  text-align: center;
+  padding: 0 10%;
+  margin-bottom: 80px;
+}
+
+.pricing-lead {
+  color: #888;
+  max-width: 600px;
+  margin: 20px auto;
+  font-size: 1.2rem;
+}
+
+/* Plans Grid */
+.plans-container {
+  padding: 0 10%;
+  margin-bottom: 120px;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.plan-card {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  padding: 50px 30px;
+  border-radius: 12px;
+  position: relative;
+  transition: transform 0.3s, border-color 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.plan-card.featured {
+  border-color: #b5ff00;
+  background: #0f110a;
+  transform: scale(1.05);
+}
+
+.featured-label {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #b5ff00;
+  color: #000;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+.plan-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #eee;
+}
+
+.plan-price {
+  margin-bottom: 10px;
+}
+
+.plan-price .currency { 
+  font-size: 1rem; 
+  color: #555; 
+  vertical-align: top; 
+  margin-right: 5px; 
+}
+
+.plan-price .amount { 
+  font-size: 3.5rem; 
+  font-weight: 900; 
+  color: #fff; 
+}
+
+.plan-price .period { 
+  font-size: 1rem; 
+  color: #555; 
+}
+
+.meal-count {
+  color: #b5ff00;
+  font-weight: 700;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 40px;
+  flex-grow: 1;
+}
+
+.plan-features li {
+  color: #888;
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+  display: flex;
+  gap: 10px;
+}
+
+.plan-features li span { 
+  color: #b5ff00; 
+}
+
+/* FIXED: Cleaned up the broken button selectors */
+.plan-btn {
+  width: 100%;
+  padding: 15px;
+  background: transparent;
+  border: 1px solid #333;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.plan-card.featured .plan-btn {
+  background: #b5ff00;
+  color: #000;
+  border: none;
+}
+
+.plan-btn:hover { 
+  background: #fff; 
+  color: #000; 
+}
+
+/* Rates Table */
+.meal-rates {
+  padding: 100px 15%;
+  background: #050505;
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 50px;
+  font-size: 2.5rem;
+}
+
+.rates-table {
+  background: #0a0a0a;
+  border-radius: 8px;
+  border: 1px solid #111;
+  overflow: hidden;
+}
+
+.rate-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 40px;
+  border-bottom: 1px solid #111;
+}
+
+.rate-row.header {
+  background: #111;
+  color: #555;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.rate-row span:last-child {
+  color: #b5ff00;
+  font-weight: 700;
+}
+
+.table-note {
+  text-align: center;
+  color: #444;
+  font-size: 12px;
+  margin-top: 20px;
+}
+
+/* CTA */
+.pricing-cta {
+  text-align: center;
+  padding: 100px 10%;
+}
+
+.secondary-cta {
+  background: transparent;
+  border: 1px solid #b5ff00;
+  color: #b5ff00;
+  padding: 15px 40px;
+  border-radius: 4px;
+  font-weight: 800;
+  margin-top: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.secondary-cta:hover {
+  background: #b5ff00;
+  color: #000;
+}

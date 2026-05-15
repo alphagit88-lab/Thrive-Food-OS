@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import './Header.css';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import type { CustomerSession } from '../types/types';
 import {
-  clearCustomerSession,
   CUSTOMER_SESSION_EVENT,
   CUSTOMER_SESSION_STORAGE_KEY,
   readCustomerSession,
 } from '../utils/storage';
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const [customerSession, setCustomerSession] = useState<CustomerSession | null>(() => readCustomerSession());
 
@@ -44,18 +42,7 @@ const Header: React.FC = () => {
   const currentPath = `${location.pathname}${location.search}`;
   const loginTarget = `/login?redirect=${encodeURIComponent(currentPath)}`;
   const signUpTarget = `/signUp?redirect=${encodeURIComponent(currentPath)}`;
-
-  const handleLogout = () => {
-    clearCustomerSession();
-    setCustomerSession(null);
-
-    if (location.pathname === '/order') {
-      navigate('/login?redirect=%2Forder');
-      return;
-    }
-
-    navigate('/');
-  };
+  const profileTarget = '/profile';
 
   return (
     <header className="header">
@@ -66,21 +53,17 @@ const Header: React.FC = () => {
         <div className='header-nav'>
           <nav className="nav">
             <ul className="nav-links">
-              <li><Link to="/#menu">Menu</Link></li>
-              <li><Link to="/#drinks">Power Drinks</Link></li>
-              <li><Link to="/#community">Community</Link></li>
+              <li><Link to="/menu">Menu</Link></li>
+              <li><Link to="/powerDrinks">Power Drinks</Link></li>
+              <li><Link to="/community">Community</Link></li>
               <li><Link to="/#who">Who we are</Link></li>
               <li><Link to="/#franchise">Franchise</Link></li>
+              <li><Link to={profileTarget}>Profile</Link></li>
             </ul>
           </nav>
           <div className="header-auth">
             {customerSession?.token ? (
-              <>
-                <span className="header-account-name">{firstName}</span>
-                <button className="sign-up-btn auth-logout-btn" onClick={handleLogout} type="button">
-                  Log Out
-                </button>
-              </>
+              <span className="header-account-name">{firstName}</span>
             ) : (
               <>
                 <Link to={loginTarget} className="build-btn-link">

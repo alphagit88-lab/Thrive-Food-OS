@@ -36,7 +36,7 @@ const LoginPage: React.FC = () => {
 	const [formError, setFormError] = useState('');
 
 	useEffect(() => {
-		if (readCustomerSession()) {
+		if (readCustomerSession()?.token) {
 			navigate(redirectTo, { replace: true });
 		}
 	}, [navigate, redirectTo]);
