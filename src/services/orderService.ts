@@ -1,4 +1,4 @@
-import API from './apiClient';
+import { requestWithHostedApiFallback } from './apiClient';
 import type {
   ChefOrder,
   ChefOrderStatus,
@@ -49,14 +49,22 @@ export const buildFoodOsOrderNote = (draft: CustomerOrderDraft) =>
     source: 'thrive-food-os',
     meal_name: draft.meal_name,
     delivery_type: draft.delivery_type,
+    scheduled_window_id: draft.scheduled_window_id || null,
     location_name: draft.location_name,
+    delivery_label: draft.delivery_label || null,
+    delivery_address: draft.delivery_address || null,
     total_price: draft.total_price,
     created_at: draft.created_at,
     plate_items: draft.plate_items,
   })}`;
 
-export const createFoodOsOrder = async (payload: FoodOsCreateOrderPayload) => {
-  const response = await API.post<SingleOrderApiResponse>('/orders', payload);
+export const createFoodOsOrder = async (payload: FoodOsCreateOrderPayload, token: string) => {
+  const { response } = await requestWithHostedApiFallback<SingleOrderApiResponse>({
+    method: 'post',
+    url: '/orders',
+    data: payload,
+    headers: buildAuthHeaders(token),
+  });
 
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || response.data.message || 'Failed to place order.');
@@ -66,7 +74,9 @@ export const createFoodOsOrder = async (payload: FoodOsCreateOrderPayload) => {
 };
 
 export const getChefOrders = async (token: string, locationId?: string) => {
-  const response = await API.get<ListOrdersApiResponse>('/orders', {
+  const { response } = await requestWithHostedApiFallback<ListOrdersApiResponse>({
+    method: 'get',
+    url: '/orders',
     headers: buildAuthHeaders(token),
     params: locationId && locationId !== 'all' ? { location_id: locationId } : undefined,
   });
@@ -83,11 +93,12 @@ export const updateChefOrderStatus = async (
   status: ChefOrderStatus,
   token: string,
 ) => {
-  const response = await API.patch<SingleOrderApiResponse>(
-    `/orders/${orderId}/status`,
-    { status },
-    { headers: buildAuthHeaders(token) },
-  );
+  const { response } = await requestWithHostedApiFallback<SingleOrderApiResponse>({
+    method: 'patch',
+    url: `/orders/${orderId}/status`,
+    data: { status },
+    headers: buildAuthHeaders(token),
+  });
 
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || response.data.message || 'Failed to update order status.');

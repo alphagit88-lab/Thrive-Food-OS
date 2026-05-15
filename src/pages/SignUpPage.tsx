@@ -53,7 +53,7 @@ const SignUpPage: React.FC = () => {
   const [otp, setOtp] = useState('');
 
   useEffect(() => {
-    if (readCustomerSession()) {
+    if (readCustomerSession()?.token) {
       navigate(redirectTo, { replace: true });
     }
   }, [navigate, redirectTo]);
@@ -139,9 +139,20 @@ const SignUpPage: React.FC = () => {
     try {
       const response = await registerUser(registrationPayload, activeLocationId || undefined);
 
+      if (!response.data.success || !response.data.token) {
+        throw new Error(response.data.message || 'Registration failed');
+      }
+
       saveCustomerSession({
         token: response.data.token,
-        user: response.data.user,
+        user: response.data.user || {
+          firstName: registrationPayload.firstName,
+          lastName: registrationPayload.lastName,
+          email: registrationPayload.email,
+          phone: registrationPayload.phone,
+          dob: registrationPayload.dob,
+          gender: registrationPayload.gender,
+        },
         authenticated_at: new Date().toISOString(),
       });
 

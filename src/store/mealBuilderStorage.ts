@@ -1,11 +1,18 @@
-import type { ChefOrder, CustomerOrderDraft, PlateItem } from '../types/types';
+import type {
+  ChefOrder,
+  CustomerOrderDraft,
+  DeliveryType,
+  PlateItem,
+  ScheduledDeliveryWindowId,
+} from '../types/types';
 
 const STORAGE_KEY = 'thrive-food-os:meal-builder-state';
 
 export interface MealBuilderPersistedState {
   selectedLocationId: string;
   plateItems: PlateItem[];
-  selectedDelivery: 'now' | 'schedule';
+  selectedDelivery: DeliveryType;
+  selectedScheduleWindowId: ScheduledDeliveryWindowId | null;
   mealName: string;
   checkoutDraft: CustomerOrderDraft | null;
   placedOrder: ChefOrder | null;

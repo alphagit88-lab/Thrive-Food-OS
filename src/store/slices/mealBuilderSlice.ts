@@ -1,11 +1,18 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { ChefOrder, CustomerOrderDraft, PlateItem } from '../../types/types';
+import type {
+  ChefOrder,
+  CustomerOrderDraft,
+  DeliveryType,
+  PlateItem,
+  ScheduledDeliveryWindowId,
+} from '../../types/types';
 import { loadMealBuilderState } from '../mealBuilderStorage';
 
 export interface MealBuilderState {
   selectedLocationId: string;
   plateItems: PlateItem[];
-  selectedDelivery: 'now' | 'schedule';
+  selectedDelivery: DeliveryType;
+  selectedScheduleWindowId: ScheduledDeliveryWindowId | null;
   mealName: string;
   checkoutDraft: CustomerOrderDraft | null;
   placedOrder: ChefOrder | null;
@@ -13,19 +20,32 @@ export interface MealBuilderState {
 
 const persistedState = loadMealBuilderState();
 
-const initialState: MealBuilderState = persistedState || {
+const DEFAULT_MEAL_BUILDER_STATE: MealBuilderState = {
   selectedLocationId: '',
   plateItems: [],
   selectedDelivery: 'now',
+  selectedScheduleWindowId: null,
   mealName: '',
   checkoutDraft: null,
   placedOrder: null,
+};
+
+const initialState: MealBuilderState = {
+  ...DEFAULT_MEAL_BUILDER_STATE,
+  ...(persistedState || {}),
 };
 
 const mealBuilderSlice = createSlice({
   name: 'mealBuilder',
   initialState,
   reducers: {
+    resetCurrentBuild: (state) => {
+      state.plateItems = [];
+      state.mealName = '';
+      state.selectedDelivery = 'now';
+      state.selectedScheduleWindowId = null;
+      state.checkoutDraft = null;
+    },
     selectLocation: (state, action: PayloadAction<string>) => {
       const nextLocationId = action.payload;
 
@@ -34,6 +54,7 @@ const mealBuilderSlice = createSlice({
         state.plateItems = [];
         state.mealName = '';
         state.selectedDelivery = 'now';
+        state.selectedScheduleWindowId = null;
         state.checkoutDraft = null;
         state.placedOrder = null;
         return;
@@ -56,8 +77,13 @@ const mealBuilderSlice = createSlice({
       state.checkoutDraft = null;
       state.placedOrder = null;
     },
-    setSelectedDelivery: (state, action: PayloadAction<'now' | 'schedule'>) => {
+    setSelectedDelivery: (state, action: PayloadAction<DeliveryType>) => {
       state.selectedDelivery = action.payload;
+      state.checkoutDraft = null;
+      state.placedOrder = null;
+    },
+    setSelectedScheduleWindow: (state, action: PayloadAction<ScheduledDeliveryWindowId>) => {
+      state.selectedScheduleWindowId = action.payload;
       state.checkoutDraft = null;
       state.placedOrder = null;
     },
@@ -65,12 +91,16 @@ const mealBuilderSlice = createSlice({
       state.checkoutDraft = action.payload;
       state.placedOrder = null;
     },
+    syncCheckoutLocation: (state, action: PayloadAction<string>) => {
+      state.selectedLocationId = action.payload;
+    },
     completeOrder: (state, action: PayloadAction<ChefOrder>) => {
       state.placedOrder = action.payload;
       state.checkoutDraft = null;
       state.plateItems = [];
       state.mealName = '';
       state.selectedDelivery = 'now';
+      state.selectedScheduleWindowId = null;
     },
     syncPlacedOrder: (state, action: PayloadAction<ChefOrder>) => {
       state.placedOrder = action.payload;
@@ -79,6 +109,7 @@ const mealBuilderSlice = createSlice({
       state.plateItems = [];
       state.mealName = '';
       state.selectedDelivery = 'now';
+      state.selectedScheduleWindowId = null;
       state.checkoutDraft = null;
       state.placedOrder = null;
     },
@@ -86,12 +117,15 @@ const mealBuilderSlice = createSlice({
 });
 
 export const {
+  resetCurrentBuild,
   selectLocation,
   addPlateItem,
   removePlateItem,
   setMealName,
   setSelectedDelivery,
+  setSelectedScheduleWindow,
   setCheckoutDraft,
+  syncCheckoutLocation,
   completeOrder,
   syncPlacedOrder,
   startNewMeal,

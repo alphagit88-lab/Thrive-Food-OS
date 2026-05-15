@@ -49,7 +49,7 @@ const getDefaultApiBaseUrl = () => {
 
 const DEFAULT_API_BASE_URL = getDefaultApiBaseUrl();
 const HAS_EXPLICIT_API_BASE_URL = Boolean(import.meta.env.VITE_API_BASE_URL?.trim());
-const SHOULD_TRY_HOSTED_CATALOG_FALLBACK =
+const SHOULD_TRY_HOSTED_API_FALLBACK =
   !HAS_EXPLICIT_API_BASE_URL && DEFAULT_API_BASE_URL === getLocalApiBaseUrl();
 
 const normalizeApiBaseUrl = (value?: string) => {
@@ -101,9 +101,9 @@ export const resolveApiAssetUrl = (value?: string | null, apiOrigin = API_ORIGIN
 const isNetworkLevelAxiosError = (error: unknown): error is AxiosError =>
   axios.isAxiosError(error) && !error.response;
 
-let hasLoggedHostedCatalogFallback = false;
+let hasLoggedHostedApiFallback = false;
 
-export const requestWithHostedCatalogFallback = async <T>(
+export const requestWithHostedApiFallback = async <T>(
   config: AxiosRequestConfig,
 ): Promise<{ response: AxiosResponse<T>; apiOrigin: string }> => {
   try {
@@ -112,15 +112,15 @@ export const requestWithHostedCatalogFallback = async <T>(
       apiOrigin: API_ORIGIN,
     };
   } catch (error) {
-    if (!SHOULD_TRY_HOSTED_CATALOG_FALLBACK || !isNetworkLevelAxiosError(error)) {
+    if (!SHOULD_TRY_HOSTED_API_FALLBACK || !isNetworkLevelAxiosError(error)) {
       throw error;
     }
 
-    if (!hasLoggedHostedCatalogFallback) {
+    if (!hasLoggedHostedApiFallback) {
       console.warn(
-        `Primary API at ${API_BASE_URL} is unreachable. Retrying Thrive catalog reads against ${HOSTED_THRIVE_BACKEND_API_BASE_URL}.`,
+        `Primary API at ${API_BASE_URL} is unreachable. Retrying requests against ${HOSTED_THRIVE_BACKEND_API_BASE_URL}.`,
       );
-      hasLoggedHostedCatalogFallback = true;
+      hasLoggedHostedApiFallback = true;
     }
 
     return {
@@ -132,6 +132,11 @@ export const requestWithHostedCatalogFallback = async <T>(
     };
   }
 };
+
+export const requestWithHostedCatalogFallback = async <T>(
+  config: AxiosRequestConfig,
+): Promise<{ response: AxiosResponse<T>; apiOrigin: string }> =>
+  requestWithHostedApiFallback<T>(config);
 
 const API: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
